@@ -10,13 +10,11 @@ elif [ $1 == "dave" -o $1 == "-d" ]; then
 	device=mtp
 	mountPoint=/media/android
 	srcPhotoDir=${mountPoint}/Card/DCIM
-#	backupDir=/sharedisk/backups/daveCell
 elif [ $1 == "suz" -o $1 == "-s" ]; then
 	echo "Backing up Suz's cell"
 	device=mtp
 	mountPoint=/media/android
 	srcPhotoDir=${mountPoint}/DCIM
-#	backupDir=/sharedisk/backups/suzCell
 elif [ $1 == "cam" -o $1 == "-c" ]; then
 	echo "Backing up camera"
 	device=/dev/disk/by-label/CAMERA
@@ -96,19 +94,6 @@ if [ $? -eq 0 ]; then
 else
 	echo "Failed to sort photos!"
 	exit 1
-fi
-
-#********************BACKUP THE DEVICE********************
-if [ "${backupDir}" == "" ]; then
-	echo "No backupDir specified"
-else
-	if [ ! -d ${backupDir} ]; then
-		echo "Can't find a backup dir at ${backupDir}"
-		exit 1
-	else
-		echo "Backing up device..."
-		rdiff-backup -v4 --exclude "${mountPoint}/Movies" --exclude "${mountPoint}/Music" "${mountPoint}" "${backupDir}"
-	fi
 fi
 
 #********************UNMOUNT THE DEVICE********************
