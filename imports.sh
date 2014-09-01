@@ -1,0 +1,54 @@
+#!/bin/bash
+
+verify_command() {
+	VERIFIED_COMMAND=""
+
+	SEARCH_DESCRIPTION=$1
+	if [[ $# -gt 1 ]]; then
+		shift
+	fi
+
+	echo -n Searching for ${SEARCH_DESCRIPTION}...
+	for f in $@; do
+		if command -v $f >/dev/null; then
+			echo Found $(command -v $f)
+			VERIFIED_COMMAND=${f}
+			return 0
+		else
+			shift
+		fi
+	done
+	return 1
+}
+
+safe_delete() {
+	if command -v kioclient >/dev/null; then
+		echo "Trashing files"
+		kioclient move "${1}" trash:/
+	else
+		echo Okay to delete ${1}?
+		read isOk
+		if [ $isOk == "yes" ]; then
+			rm -rfv "${1}"
+		else
+			echo "Did not delete ${1}"
+		fi
+	fi
+}
+
+is_mtp() {
+	if [[ ${1} == "mtp" ]]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+die() {
+	echo $1
+	if [[ -z $2 ]]; then
+		exit 1
+	else
+		exit $2
+	fi
+}
