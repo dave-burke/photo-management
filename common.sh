@@ -44,11 +44,24 @@ is_mtp() {
 	fi
 }
 
+is_mounted() {
+	if [[ ! -b ${1} ]]; then
+		echo "${1} is not a block device!"
+		return 1
+	fi
+	if mount | grep ${1} >/dev/null; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 die() {
 	echo $1
-	if [[ -z $2 ]]; then
+	if [[ -z "$2" ]]; then
 		exit 1
 	else
 		exit $2
 	fi
 }
+

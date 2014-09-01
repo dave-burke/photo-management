@@ -1,11 +1,15 @@
 #!/bin/bash
 
-source $(dirname ${0})/imports.sh
+source $(dirname ${0})/common.sh
 
 verify_command feh || die "You must have feh installed to select photos"
-SELECTION_TOOL=${VERIFIED_COMMAND}
+FEH_CMD=${VERIFIED_COMMAND}
+
 verify_command exiftool || die "You must have exiftool installed to sort photos"
-SORT_TOOL=${VERIFIED_COMMAND}
+EXIFTOOL_CMD=${VERIFIED_COMMAND}
+
+verify_command vlc || die "VLC is required for selecting videos"
+VLC=${VERIFIED_COMMAND}
 
 #********************PARSE CLI********************
 while [ "$1" ]; do
@@ -38,26 +42,33 @@ done
 echo "Sorting photos from ${srcPhotoDir} to ${targetPhotoDir}"
 
 #********************Filter photos*************************
-cd ${srcPhotoDir}
-echo "Select photos to keep with ${SELECTION_TOOL}"
+echo "Select photos to keep"
 echo "Rotate with <>"
-echo "Delete with d"
-feh_file=selected.txt
-#feh -d -g 800x600 -f ${feh_file} ${srcPhotoDir}
+echo "Mark for deletion with d"
+echo "Press q when finished"
+feh_file=${srcPhotoDir}/selected.txt
+${FEH_CMD} -d -g 800x600 -f ${feh_file} ${srcPhotoDir}
+
+#********************SET ASIDE SELECTED PHOTOS***********************
+echo "Setting aside selected photos..."
+selectedPhotoDir=${srcPhotoDir}/selected_photos
+mkdir ${selectedPhotoDir}
+while read f; do
+	mv -v "${f}" ${selectedPhotoDir}
+done < ${feh_file}
 
 #********************SORT SELECTED PHOTOS***********************
 echo "Sorting photos to ${targetPhotoDir}"
-exit 0
-
-while read f; do
-	${SORT_TOOL} -ext '*' --ext CTG '-Directory<CreateDate' -d ${targetPhotoDir}/%Y-%m ${f}
-	if [ $? -eq 0 ]; then
-		echo "Sorted ${f}!"
-		safe_delete ${f}
+${EXIFTOOL_CMD} -ext '*' --ext CTG '-Directory<CreateDate' -d ${targetPhotoDir}/%Y-%m ${selectedPhotoDir}
+if [ $? -eq 0 ]; then
+	echo "Sorted selected photos!"
+	if [ -z "$(ls -A ${selectedPhotoDir})" ]; then
+		safe_delete ${srcPhotoDir}
 	else
-		die "Failed to organize ${f}!"
+		ls -A ${selectedPhotoDir}
+		die "Some files were not sorted! Sort them manually in ${selectedPhotoDir}"
 	fi
-done < ${feh_file}
+else
+	die "Failed to organize selected photos!"
+fi
 
-#********************TRASH UNSELECTED PHOTOS********************
-safe_delete ${srcPhotoDir}
