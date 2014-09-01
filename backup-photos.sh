@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $(dirname ${0})/imports.sh
+source $(dirname ${0})/common.sh
 
 verify_command duplicity || die "duplicity is required for backing up encrypted photos"
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEFAULT_TARGET_DIR=/tmp/photos
-source $(dirname ${0})/imports.sh
+source $(dirname ${0})/common.sh
 
 #********************PARSE CLI********************
 while [ "$1" ]; do
