@@ -73,7 +73,6 @@ echo "***SUMMARY***"
 echo Device: ${device}
 echo Mount point: ${mountPoint}
 echo Source dir: ${srcPhotoDir}
-echo Temp dir: ${tmpPhotoDir}
 echo Target dir: ${targetPhotoDir}
 echo "*************"
 
@@ -93,19 +92,19 @@ if [ ! -d "${srcPhotoDir}" ]; then
 	die "Couldn't find source photo directory on device: ${srcPhotoDir}"
 fi
 
-#********************CREATE TEMP PHOTO DIRECTORY********************
-if [ ! -d "${tmpPhotoDir}" ]; then
-	mkdir -v "${tmpPhotoDir}"
-	if [ ! -d "${tmpPhotoDir}" ]; then
-		die "Couldn't make directory at ${tmpPhotoDir}"
+#********************CREATE TARGET PHOTO DIRECTORY********************
+if [ ! -d "${targetPhotoDir}" ]; then
+	mkdir -v "${targetPhotoDir}"
+	if [ ! -d "${targetPhotoDir}" ]; then
+		die "Couldn't make directory at ${targetPhotoDir}"
 	fi
 else
-	echo ${tmpPhotoDir} already exists.
+	echo ${targetPhotoDir} already exists.
 fi
 
 #********************COPY AND VERIFY THE PHOTOS********************
 echo Copying photos...
-rsync -av -h --progress --exclude="cache" "${srcPhotoDir}/" "${tmpPhotoDir}"
+rsync -av -h --progress --exclude="cache" "${srcPhotoDir}/" "${targetPhotoDir}"
 if [ $? -eq 0 ]; then
 	echo "Success!"
 	safe_delete ${srcPhotoDir}
