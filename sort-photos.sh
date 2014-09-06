@@ -57,18 +57,56 @@ while read f; do
 	mv -v "${f}" ${selectedPhotoDir}
 done < ${feh_file}
 
-#********************SORT SELECTED PHOTOS***********************
-echo "Sorting photos to ${targetPhotoDir}"
-${EXIFTOOL_CMD} -ext '*' --ext CTG '-Directory<CreateDate' -d ${targetPhotoDir}/%Y-%m ${selectedPhotoDir}
-if [ $? -eq 0 ]; then
-	echo "Sorted selected photos!"
-	if [ -z "$(ls -A ${selectedPhotoDir})" ]; then
+#********************Filter Videos*************************
+# nullglob prevents bash from making a fuss when one of the filetypes isn't present
+# however, it can cause problems if you aren't careful (e.g. `ls *.nomatch`). So we
+# unset it at the end of the loop
+shopt -s nullglob
+for v in *.mov *.MOV *.mp4 *.MP4 *.m4v *.M4V *.mkv *.MKV; do
+	if [[ -f ${v} ]]; then
+		echo "Found video file ${v}"
+		vlc ${v}
+		echo "Do you want to keep that video?"
+		read keepVid 
+		if [ ${keepVid:0:1} == "y" ]; then
+			echo "Selected ${v}"
+			echo ${v} >> ${feh_file}
+		else
+			echo "Did not select ${v}"
+		fi
+	else
+		echo "${v} is not a video file"
+	fi
+done
+shopt -u nullglob
+
+#********************SORT SELECTED FILES***********************
+echo "Sorting selected files to ${targetPhotoDir}"
+${EXIFTOOL_CMD} -ext '*' '-Directory<CreateDate' -d ${targetPhotoDir}/%Y-%m ${selectedPhotoDir}
+[[ $? -eq 0 ]] || die "Failed to organize photos by CreateDate!"
+
+if [ -n "$(ls -A ${selectedPhotoDir})" ]; then
+	echo "The following files did not have 'CreateDate' exif data. They will be sorted by file modified time"
+	ls -A ${selectedPhotoDir}
+	${EXIFTOOL_CMD} -ext '*' '-Directory<FileModifyDate' -d ${targetPhotoDir}/%Y-%m ${selectedPhotoDir}
+	[[ $? -eq 0 ]] || die "Failed to organize photos by FileModifyDate!"
+fi
+if [ -n "$(ls -A ${selectedPhotoDir})" ]; then
+	die "Some files were not sorted! Sort them manually in ${selectedPhotoDir}"
+fi
+
+echo "Sorted all selected photos!"
+safe_delete selected.txt
+safe_delete ${selectedPhotoDir}
+
+if [ -n "$(ls -A ${srcPhotoDir})" ]; then
+	ls -A ${srcPhotoDir}
+	echo "The files above were NOT selected or sorted. Are you sure they can be deleted?"
+	read isOk
+	if [ ${isOk:0:1} == "y" ]; then
 		safe_delete ${srcPhotoDir}
 	else
-		ls -A ${selectedPhotoDir}
-		die "Some files were not sorted! Sort them manually in ${selectedPhotoDir}"
+		echo "Did not delete any files in ${srcPhotoDir}"
 	fi
-else
-	die "Failed to organize selected photos!"
 fi
 
