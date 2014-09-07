@@ -49,14 +49,6 @@ echo "Press q when finished"
 feh_file=${src_photo_dir}/selected.txt
 ${FEH_CMD} -d -g 800x600 -f ${feh_file} ${src_photo_dir}
 
-#********************SET ASIDE SELECTED PHOTOS***********************
-echo "Setting aside selected photos..."
-selected_photo_dir=${src_photo_dir}/selected_photos
-mkdir ${selected_photo_dir}
-while read f; do
-	mv -v "${f}" ${selected_photo_dir}
-done < ${feh_file}
-
 #********************Filter Videos*************************
 echo "Your videos will be played one by one, and you will be asked whether to select each one. Ready?"
 pause
@@ -64,15 +56,22 @@ pause
 # however, it can cause problems if you aren't careful (e.g. with `ls *.nomatch`). So we
 # unset it at the end of the loop
 shopt -s nullglob
-for v in *.mov *.MOV *.mp4 *.MP4 *.m4v *.M4V *.mkv *.MKV; do
+for v in ${src_photo_dir}/*.mov \
+		${src_photo_dir}/*.MOV \
+		${src_photo_dir}/*.mp4 \
+		${src_photo_dir}/*.MP4 \
+		${src_photo_dir}/*.m4v \
+		${src_photo_dir}/*.M4V \
+		${src_photo_dir}/*.mkv \
+		${src_photo_dir}/*.MKV; do
 	if [[ -f ${v} ]]; then
 		echo "Found video file ${v}"
-		vlc ${v}
+		vlc "${v}"
 		echo "Do you want to keep that video?"
 		read keep_vid 
 		if [ ${keep_vid:0:1} == "y" ]; then
 			echo "Selected ${v}"
-			echo ${v} >> ${feh_file}
+			echo "${v}" >> ${feh_file}
 		else
 			echo "Did not select ${v}"
 		fi
@@ -81,6 +80,15 @@ for v in *.mov *.MOV *.mp4 *.MP4 *.m4v *.M4V *.mkv *.MKV; do
 	fi
 done
 shopt -u nullglob
+
+#********************SET ASIDE SELECTED FILES***********************
+echo "Setting aside selected photos..."
+selected_photo_dir=${src_photo_dir}/selected_photos
+mkdir ${selected_photo_dir}
+while read f; do
+	mv -v "${f}" ${selected_photo_dir}
+done < ${feh_file}
+safe_delete ${feh_file}
 
 #********************SORT SELECTED FILES***********************
 echo "Sorting selected files to ${target_photo_dir}"
