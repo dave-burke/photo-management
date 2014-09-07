@@ -24,6 +24,9 @@ while [ "$1" ]; do
 			shift
 			[[ -d ${mount_point} ]] || die "${mount_point} is not a valid mount point"
 			;;
+		-u|--su)
+			use_sudo=true
+			;;
 		-s|--src-dir)
 			src_photo_dir=$2
 			shift
@@ -84,6 +87,7 @@ echo Mount point: ${mount_point}
 echo Source dir: ${src_photo_dir}
 echo Target dir: ${target_photo_dir}
 echo "*************"
+pause
 
 #********************MOUNT DEVICE********************
 if [ -n "${device}" ]; then
@@ -94,7 +98,13 @@ if [ -n "${device}" ]; then
 		if is_mounted ${device}; then
 			echo "${device} is already mounted."
 		else
-			mount -v "${device}"
+			if ${use_sudo}; then
+				current_uid=$(id -u)
+				current_gid=$(id -g)
+				sudo mount -v -o umask=0022,uid=${current_uid},gid=${current_gid} "${device}" "${mount_point}"
+			else
+				mount -v "${device}" "${mount_point}"
+			fi
 		fi
 	fi
 else
@@ -138,7 +148,11 @@ if [ -n "${device}" ]; then
 	if is_mtp ${device} ; then
 		fusermount -u "${mount_point}"
 	else
-		umount -v "${mount_point}"
+		if ${use_sudo}; then
+			sudo umount -v "${mount_point}"
+		else
+			umount -v "${mount_point}"
+		fi
 	fi
 fi
 
