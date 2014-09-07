@@ -58,6 +58,8 @@ while read f; do
 done < ${feh_file}
 
 #********************Filter Videos*************************
+echo "Your videos will be played one by one, and you will be asked whether to select each one. Ready?"
+pause
 # nullglob prevents bash from making a fuss when one of the filetypes isn't present
 # however, it can cause problems if you aren't careful (e.g. with `ls *.nomatch`). So we
 # unset it at the end of the loop

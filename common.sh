@@ -65,3 +65,8 @@ die() {
 	fi
 }
 
+pause() {
+	echo -n "Press [Enter] to contine..."
+	read
+}
+
