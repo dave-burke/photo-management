@@ -22,7 +22,7 @@ while [ "$1" ]; do
 		-m|--mount-point)
 			mount_point=${2}
 			shift
-			[[ ! -d ${mount_point} ]] || die "${mount_point} is not a valid mount point"
+			[[ -d ${mount_point} ]] || die "${mount_point} is not a valid mount point"
 			;;
 		-s|--src-dir)
 			src_photo_dir=$2
