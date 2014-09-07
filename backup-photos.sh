@@ -8,12 +8,12 @@ verify_command duplicity || die "duplicity is required for backing up encrypted 
 while [ "$1" ]; do
 	case $1 in
 		-s|--src-dir)
-			srcPhotoDir=$2
+			src_photo_dir=$2
 			shift
-			[[ -d ${srcPhotoDir} ]] || die "${srcPhotoDir} is not a valid source photo directory"
+			[[ -d ${src_photo_dir} ]] || die "${src_photo_dir} is not a valid source photo directory"
 			;;
 		-t|--target)
-			backupTarget=$2
+			backup_target=$2
 			shift
 			;;
 		-*)
@@ -27,12 +27,12 @@ while [ "$1" ]; do
 done
 
 #********************VERIFY CLI********************
-[[ -n ${srcPhotoDir} ]] || die "[-s|--src-dir] is required"
-[[ -n ${backupTarget} ]] || die "[-t|--target-dir] is required"
+[[ -n ${src_photo_dir} ]] || die "[-s|--src-dir] is required"
+[[ -n ${backup_target} ]] || die "[-t|--target-dir] is required"
 
 #********************DO BACKUP********************
-if [[ "S3" == ${backupTarget} || "s3" == ${backupTarget} ]]; then
-	echo "Backing up to ${srcPhotoDir} to Amazon S3"
+if [[ "S3" == ${backup_target} || "s3" == ${backup_target} ]]; then
+	echo "Backing up to ${src_photo_dir} to Amazon S3"
 else
-	echo "Backing up ${srcPhotoDir} to ${backupTarget}"
+	echo "Backing up ${src_photo_dir} to ${backup_target}"
 fi

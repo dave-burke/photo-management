@@ -20,17 +20,17 @@ while [ "$1" ]; do
 			fi
 			;;
 		-m|--mount-point)
-			mountPoint=${2}
+			mount_point=${2}
 			shift
-			[[ ! -d ${mountPoint} ]] || die "${mountPoint} is not a valid mount point"
+			[[ ! -d ${mount_point} ]] || die "${mount_point} is not a valid mount point"
 			;;
 		-s|--src-dir)
-			srcPhotoDir=$2
+			src_photo_dir=$2
 			shift
 			#Can't verify until after mounting
 			;;
 		-t|--target-dir)
-			targetPhotoDir=$2
+			target_photo_dir=$2
 			shift
 			#Defaulted to ${DEFAULT_TARGET_DIR}
 			;;
@@ -40,18 +40,18 @@ while [ "$1" ]; do
 			if [ ${preset} == "android-sd" ]; then
 				echo "Backing up from Android SD card"
 				device=mtp
-				mountPoint=/media/android
-				srcPhotoDir=${mountPoint}/Card/DCIM
+				mount_point=/media/android
+				src_photo_dir=${mount_point}/Card/DCIM
 			elif [ ${preset} == "android" ]; then
 				echo "Backing up from Android internal storage"
 				device=mtp
-				mountPoint=/media/android
-				srcPhotoDir=${mountPoint}/DCIM
+				mount_point=/media/android
+				src_photo_dir=${mount_point}/DCIM
 			elif [ ${preset} == "cam" ]; then
 				echo "Backing up camera"
 				device=/dev/disk/by-label/CAMERA
-				mountPoint=/media/cam
-				srcPhotoDir=${mountPoint}/DCIM
+				mount_point=/media/cam
+				src_photo_dir=${mount_point}/DCIM
 			fi
 			;;
 		-*)
@@ -65,31 +65,31 @@ while [ "$1" ]; do
 done
 
 #********************VERIFY CLI********************
-[[ -n "${srcPhotoDir}" ]] || die "[-s|--src-dir] is required"
-if [ -n "${device}" -a -z "${mountPoint}" ]; then
+[[ -n "${src_photo_dir}" ]] || die "[-s|--src-dir] is required"
+if [ -n "${device}" -a -z "${mount_point}" ]; then
 	die "[-m|--mount-point] is required when you specify a [-d|--device]"
 fi
-if [ -n "${mountPoint}" -a -z "${device}" ]; then
+if [ -n "${mount_point}" -a -z "${device}" ]; then
 	die "[-d|--device] is required when you specify a [-m|--mount-point]"
 fi
 
 #********************SET DEFAULTS********************
-if [[ -z "${targetPhotoDir}" ]]; then
-	targetPhotoDir=${DEFAULT_TARGET_DIR}
+if [[ -z "${target_photo_dir}" ]]; then
+	target_photo_dir=${DEFAULT_TARGET_DIR}
 fi
 
 echo "***SUMMARY***"
 echo Device: ${device}
-echo Mount point: ${mountPoint}
-echo Source dir: ${srcPhotoDir}
-echo Target dir: ${targetPhotoDir}
+echo Mount point: ${mount_point}
+echo Source dir: ${src_photo_dir}
+echo Target dir: ${target_photo_dir}
 echo "*************"
 
 #********************MOUNT DEVICE********************
 if [ -n "${device}" ]; then
 	echo "Mounting device..."
 	if is_mtp ${device} ; then
-		${MTP_UTIL} ${mountPoint}
+		${MTP_UTIL} ${mount_point}
 	else
 		if is_mounted ${device}; then
 			echo "${device} is already mounted."
@@ -103,30 +103,30 @@ fi
 
 #********************VERIFY THE PHOTO SOURCE DIRECTORY********************
 echo -n "Checking source directory..."
-if [ -d "${srcPhotoDir}" ]; then
-	echo "Found ${srcPhotoDir}"
+if [ -d "${src_photo_dir}" ]; then
+	echo "Found ${src_photo_dir}"
 else
-	die "Couldn't find source photo directory on device: ${srcPhotoDir}"
+	die "Couldn't find source photo directory on device: ${src_photo_dir}"
 fi
 
 #********************CREATE TARGET PHOTO DIRECTORY********************
 echo -n "Checking target directory..."
-if [ -d "${targetPhotoDir}" ]; then
-	echo "Found ${targetPhotoDir}"
+if [ -d "${target_photo_dir}" ]; then
+	echo "Found ${target_photo_dir}"
 else
 	echo -n "Not found..."
-	mkdir -pv "${targetPhotoDir}"
-	if [ ! -d "${targetPhotoDir}" ]; then
-		die "Couldn't make directory at ${targetPhotoDir}"
+	mkdir -pv "${target_photo_dir}"
+	if [ ! -d "${target_photo_dir}" ]; then
+		die "Couldn't make directory at ${target_photo_dir}"
 	fi
 fi
 
 #********************COPY AND VERIFY THE PHOTOS********************
 echo Copying photos...
-${RSYNC_CMD} -av -h --progress --exclude="cache" "${srcPhotoDir}/" "${targetPhotoDir}"
+${RSYNC_CMD} -av -h --progress --exclude="cache" "${src_photo_dir}/" "${target_photo_dir}"
 if [ $? -eq 0 ]; then
 	echo "Success!"
-	safe_delete ${srcPhotoDir}
+	safe_delete ${src_photo_dir}
 else
 	die "Failed to sync photos!"
 fi
@@ -136,9 +136,9 @@ if [ -n "${device}" ]; then
 	echo "Unmounting the device"
 	sync ; sleep 2
 	if is_mtp ${device} ; then
-		fusermount -u "${mountPoint}"
+		fusermount -u "${mount_point}"
 	else
-		umount -v "${mountPoint}"
+		umount -v "${mount_point}"
 	fi
 fi
 

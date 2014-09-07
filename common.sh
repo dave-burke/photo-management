@@ -3,12 +3,12 @@
 verify_command() {
 	VERIFIED_COMMAND=""
 
-	SEARCH_DESCRIPTION=$1
+	__search_description__=$1
 	if [[ $# -gt 1 ]]; then
 		shift
 	fi
 
-	echo -n Searching for ${SEARCH_DESCRIPTION}...
+	echo -n Searching for ${__search_description__}...
 	for f in $@; do
 		if command -v $f >/dev/null; then
 			echo Found $(command -v $f)
@@ -27,8 +27,8 @@ safe_delete() {
 		kioclient move "${1}" trash:/
 	else
 		echo Okay to delete ${1}?
-		read isOk
-		if [ $isOk == "yes" ]; then
+		read is_ok
+		if [ $is_ok == "yes" ]; then
 			rm -rfv "${1}"
 		else
 			echo "Did not delete ${1}"
