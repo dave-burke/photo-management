@@ -70,3 +70,39 @@ pause() {
 	read
 }
 
+safe_copy() {
+	#TODO check that each source is a file. Refuse to work on directory sources for now.
+	#TODO test file names with multiple dots etc.
+	unset sources
+	sources[1]=${1}
+	target=${2}
+	shift 2
+
+	while [ "$1" ]; do
+		sources+=${target}
+		target=${1}
+		shift
+	done
+
+	for s in ${sources}; do
+		if [[ -d ${target} ]]; then
+			targetFile=${target}/$(basename ${s})
+		else
+			targetFile=${target}
+		fi
+		base=${targetFile%.*}
+		extension=".${targetFile##*.}"
+		if [[ -z ${base} ]]; then
+			#No periods in the file name. Just use the filename.
+			base=${extension}
+			extension=""
+		fi
+		i=1
+		while [[ -f ${targetFile} ]]; do
+			targetFile=${base}-$i${extension}
+			i=$((i+1))
+		done
+		cp -iv ${s} ${targetFile}
+	done
+}
+
