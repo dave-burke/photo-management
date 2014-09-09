@@ -70,9 +70,32 @@ pause() {
 	read
 }
 
+get_safe_filename() {
+	unset SAFE_NAME
+	dirname=$(dirname ${1})
+	filename=$(basename ${1})
+
+	name=${filename%.*}
+	extension="${filename##*.}"
+
+	if [[ "${name}" == "${extension}" ]]; then
+		#No periods in the file name. Just use the filename.
+		name=${extension}
+		extension=""
+	else
+		extension=".${extension}"
+	fi
+
+	i=1
+
+	SAFE_NAME=${dirname}/${name}${extension}
+	while [[ -f ${SAFE_NAME} ]]; do
+		SAFE_NAME=${dirname}/${name}-$i${extension}
+		i=$((i+1))
+	done
+}
+
 safe_copy() {
-	#TODO check that each source is a file. Refuse to work on directory sources for now.
-	#TODO test file names with multiple dots etc.
 	unset sources
 	sources[1]=${1}
 	target=${2}
@@ -85,24 +108,26 @@ safe_copy() {
 	done
 
 	for s in ${sources}; do
+		[[ -f ${s} ]] || die "All source items must be files!"
+	done
+	for s in ${sources}; do
 		if [[ -d ${target} ]]; then
-			targetFile=${target}/$(basename ${s})
+			target_file=${target}/$(basename ${s})
 		else
-			targetFile=${target}
+			target_file=${target}
 		fi
-		base=${targetFile%.*}
-		extension=".${targetFile##*.}"
-		if [[ -z ${base} ]]; then
-			#No periods in the file name. Just use the filename.
-			base=${extension}
-			extension=""
-		fi
-		i=1
-		while [[ -f ${targetFile} ]]; do
-			targetFile=${base}-$i${extension}
-			i=$((i+1))
-		done
-		cp -iv ${s} ${targetFile}
+		get_safe_filename ${target_file}
+		cp -iv ${s} ${SAFE_NAME}
+	done
+}
+
+safe_flatten() {
+	source_dir=${1}
+	target_dir=${2}
+	[[ -d ${source_dir} ]] || die "${source_dir} is not a directory"
+	[[ -d ${target_dir} ]] || die "${target_dir} is not a directory"
+	find ${source_dir} -type f -print0 | while IFS= read -r -d $'\0' f; do
+		safe_copy ${f} ${target_dir}
 	done
 }
 

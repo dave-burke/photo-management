@@ -3,8 +3,6 @@
 DEFAULT_TARGET_DIR=/tmp/photos
 source $(dirname ${0})/common.sh
 
-verify_command rsync || die "rsync is required for copying mounted images"
-RSYNC_CMD=${VERIFIED_COMMAND}
 
 #********************PARSE CLI********************
 while [ "$1" ]; do
@@ -41,6 +39,7 @@ while [ "$1" ]; do
 			preset=$2
 			shift
 			if [ ${preset} == "android-sd" ]; then
+				#TODO these values don't get verified. Worse, MTP_UTIL doesn't get set
 				echo "Backing up from Android SD card"
 				device=mtp
 				mount_point=/media/android
@@ -131,15 +130,11 @@ else
 	fi
 fi
 
-#********************COPY AND VERIFY THE PHOTOS********************
-echo Copying photos...
-${RSYNC_CMD} -av -h --progress --exclude="cache" "${src_photo_dir}/" "${target_photo_dir}"
-if [ $? -eq 0 ]; then
-	echo "Success!"
-	safe_delete ${src_photo_dir}
-else
-	die "Failed to sync photos!"
-fi
+#********************MOVE THE PHOTOS********************
+echo "Copying photos..."
+safe_flatten ${src_photo_dir} ${target_photo_dir}
+echo "Deleting source files..."
+safe_delete ${src_photo_dir}
 
 #********************UNMOUNT THE DEVICE********************
 if [ -n "${device}" ]; then
