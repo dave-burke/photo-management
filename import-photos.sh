@@ -106,10 +106,10 @@ while [ "$1" ]; do
 			shift
 			[[ -d "${mount_point}" ]] || die "${mount_point} is not a valid mount point"
 			;;
-		-u|--su)
+		-u|--use-sudo)
 			use_sudo=true
 			;;
-		-s|--src-dir)
+		-s|--source-dir)
 			src_photo_dir="${2}"
 			shift
 			#Can't verify until after mounting
