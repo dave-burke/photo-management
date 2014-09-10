@@ -26,11 +26,11 @@ is_mounted() {
 
 get_safe_filename() {
 	unset SAFE_NAME
-	dirname=$(dirname "${1}")
-	filename=$(basename "${1}")
+	local dirname=$(dirname "${1}")
+	local filename=$(basename "${1}")
 
-	name="${filename%.*}"
-	extension="${filename##*.}"
+	local name="${filename%.*}"
+	local extension="${filename##*.}"
 
 	if [[ "${name}" == "${extension}" ]]; then
 		#No periods in the file name. Just use the filename.
@@ -50,10 +50,8 @@ get_safe_filename() {
 }
 
 safe_copy() {
-	unset sources
-	declare -a sources
-	sources[1]="${1}"
-	target="${2}"
+	local sources[1]="${1}"
+	local target="${2}"
 	shift 2
 
 	while [ "${1}" ]; do
@@ -62,12 +60,15 @@ safe_copy() {
 		shift
 	done
 
+	local i
+	local s
 	for i in $(seq 1 ${#sources[@]}); do
 		s=${sources[i]}
 		[[ -f ${s} ]] || die "Can't copy non-file ${s}"
 	done
 	for i in $(seq 1 ${#sources[@]}); do
 		s=${sources[i]}
+		local target_file
 		if [[ -d ${target} ]]; then
 			target_file="${target}/$(basename "${s}")"
 		else
@@ -79,8 +80,8 @@ safe_copy() {
 }
 
 safe_flatten() {
-	source_dir="${1}"
-	target_dir="${2}"
+	local source_dir="${1}"
+	local target_dir="${2}"
 	[[ -d ${source_dir} ]] || die "${source_dir} is not a directory"
 	[[ -d ${target_dir} ]] || die "${target_dir} is not a directory"
 	find "${source_dir}" -type f -print0 | while IFS= read -r -d $'\0' f; do
@@ -222,6 +223,7 @@ echo "Deleting junk..."
 rm -v "${target_photo_dir}"/*.CTG
 
 echo "Deleting source files from ${src_photo_dir}..."
+echo "TESTING: skipping delete step"
 #safe_delete "${src_photo_dir}"
 
 #********************UNMOUNT THE DEVICE********************
