@@ -5,7 +5,7 @@ source $(dirname ${0})/common.sh
 
 #********************FUNCTIONS********************
 is_mtp() {
-	if [[ ${1} == "mtp" ]]; then
+	if [[ "${1}" == "mtp" ]]; then
 		return 0
 	else
 		return 1
@@ -13,11 +13,11 @@ is_mtp() {
 }
 
 is_mounted() {
-	if [[ ! -b ${1} ]]; then
+	if [[ ! -b "${1}" ]]; then
 		echo "${1} is not a block device!"
 		return 1
 	fi
-	if mount | grep ${1} >/dev/null; then
+	if mount | grep "${1}" >/dev/null; then
 		return 0
 	else
 		return 1
@@ -26,15 +26,15 @@ is_mounted() {
 
 get_safe_filename() {
 	unset SAFE_NAME
-	dirname=$(dirname ${1})
-	filename=$(basename ${1})
+	dirname=$(dirname "${1}")
+	filename=$(basename "${1}")
 
-	name=${filename%.*}
+	name="${filename%.*}"
 	extension="${filename##*.}"
 
 	if [[ "${name}" == "${extension}" ]]; then
 		#No periods in the file name. Just use the filename.
-		name=${extension}
+		name="${extension}"
 		extension=""
 	else
 		extension=".${extension}"
@@ -42,46 +42,49 @@ get_safe_filename() {
 
 	i=1
 
-	SAFE_NAME=${dirname}/${name}${extension}
-	while [[ -f ${SAFE_NAME} ]]; do
-		SAFE_NAME=${dirname}/${name}-$i${extension}
+	SAFE_NAME="${dirname}/${name}${extension}"
+	while [[ -f "${SAFE_NAME}" ]]; do
+		SAFE_NAME="${dirname}/${name}-$i${extension}"
 		i=$((i+1))
 	done
 }
 
 safe_copy() {
 	unset sources
-	sources[1]=${1}
-	target=${2}
+	declare -a sources
+	sources[1]="${1}"
+	target="${2}"
 	shift 2
 
-	while [ "$1" ]; do
-		sources+=${target}
-		target=${1}
+	while [ "${1}" ]; do
+		sources+="${target}"
+		target="${1}"
 		shift
 	done
 
-	for s in ${sources}; do
-		[[ -f ${s} ]] || die "All source items must be files!"
+	for i in $(seq 1 ${#sources[@]}); do
+		s=${sources[i]}
+		[[ -f ${s} ]] || die "Can't copy non-file ${s}"
 	done
-	for s in ${sources}; do
+	for i in $(seq 1 ${#sources[@]}); do
+		s=${sources[i]}
 		if [[ -d ${target} ]]; then
-			target_file=${target}/$(basename ${s})
+			target_file="${target}/$(basename "${s}")"
 		else
-			target_file=${target}
+			target_file="${target}"
 		fi
-		get_safe_filename ${target_file}
-		cp -iv ${s} ${SAFE_NAME}
+		get_safe_filename "${target_file}"
+		cp -iv "${s}" "${SAFE_NAME}"
 	done
 }
 
 safe_flatten() {
-	source_dir=${1}
-	target_dir=${2}
+	source_dir="${1}"
+	target_dir="${2}"
 	[[ -d ${source_dir} ]] || die "${source_dir} is not a directory"
 	[[ -d ${target_dir} ]] || die "${target_dir} is not a directory"
-	find ${source_dir} -type f -print0 | while IFS= read -r -d $'\0' f; do
-		safe_copy ${f} ${target_dir}
+	find "${source_dir}" -type f -print0 | while IFS= read -r -d $'\0' f; do
+		safe_copy "${f}" "${target_dir}"
 	done
 }
 
@@ -89,35 +92,35 @@ safe_flatten() {
 while [ "$1" ]; do
 	case $1 in
 		-d|--device)
-			device=${2}
+			device="${2}"
 			shift
-			if is_mtp ${device} ; then
+			if is_mtp "${device}" ; then
 				verify_command "MTP tool" simple-mtpfs || die "simple-mtpfs tools is required for mtp devices"
 				MTP_UTIL=${VERIFIED_COMMAND}
-			elif [[ ! -b ${device} ]]; then
+			elif [[ ! -b "${device}" ]]; then
 				die "Could not find block device \"${device}\"!"
 			fi
 			;;
 		-m|--mount-point)
-			mount_point=${2}
+			mount_point="${2}"
 			shift
-			[[ -d ${mount_point} ]] || die "${mount_point} is not a valid mount point"
+			[[ -d "${mount_point}" ]] || die "${mount_point} is not a valid mount point"
 			;;
 		-u|--su)
 			use_sudo=true
 			;;
 		-s|--src-dir)
-			src_photo_dir=$2
+			src_photo_dir="${2}"
 			shift
 			#Can't verify until after mounting
 			;;
 		-t|--target-dir)
-			target_photo_dir=$2
+			target_photo_dir="${2}"
 			shift
 			#Defaulted to ${DEFAULT_TARGET_DIR}
 			;;
 		-p|--preset)
-			preset=$2
+			preset="${2}"
 			shift
 			if [ ${preset} == "android-sd" ]; then
 				#TODO these values don't get verified. Worse, MTP_UTIL doesn't get set
@@ -138,7 +141,7 @@ while [ "$1" ]; do
 			fi
 			;;
 		-*)
-			die "unrecognized option: $1"
+			die "unrecognized option: ${1}"
 			;;
 		*)
 			break
@@ -172,10 +175,10 @@ pause
 #********************MOUNT DEVICE********************
 if [ -n "${device}" ]; then
 	echo "Mounting device..."
-	if is_mtp ${device} ; then
-		${MTP_UTIL} ${mount_point}
+	if is_mtp "${device}" ; then
+		${MTP_UTIL} "${mount_point}"
 	else
-		if is_mounted ${device}; then
+		if is_mounted "${device}"; then
 			echo "${device} is already mounted."
 		else
 			if ${use_sudo}; then
@@ -213,15 +216,19 @@ fi
 
 #********************MOVE THE PHOTOS********************
 echo "Copying photos..."
-safe_flatten ${src_photo_dir} ${target_photo_dir}
-echo "Deleting source files..."
-safe_delete ${src_photo_dir}
+safe_flatten "${src_photo_dir}" "${target_photo_dir}"
+
+echo "Deleting junk..."
+rm -v "${target_photo_dir}"/*.CTG
+
+echo "Deleting source files from ${src_photo_dir}..."
+#safe_delete "${src_photo_dir}"
 
 #********************UNMOUNT THE DEVICE********************
 if [ -n "${device}" ]; then
 	echo "Unmounting the device"
 	sync ; sleep 2
-	if is_mtp ${device} ; then
+	if is_mtp "${device}" ; then
 		fusermount -u "${mount_point}"
 	else
 		if ${use_sudo}; then

@@ -3,15 +3,15 @@
 verify_command() {
 	VERIFIED_COMMAND=""
 
-	__search_description__=$1
+	local search_description="${1}"
 	if [[ $# -gt 1 ]]; then
 		shift
 	fi
 
-	echo -n Searching for ${__search_description__}...
+	echo -n Searching for ${search_description}...
 	for f in $@; do
-		if command -v $f >/dev/null; then
-			echo Found $(command -v $f)
+		if command -v ${f} >/dev/null; then
+			echo Found $(command -v ${f})
 			VERIFIED_COMMAND=${f}
 			return 0
 		else
@@ -23,12 +23,12 @@ verify_command() {
 
 safe_delete() {
 	if command -v kioclient >/dev/null; then
-		echo "Trashing files"
+		echo "Trashing ${1}"
 		kioclient move "${1}" trash:/
 	else
-		echo Okay to delete ${1}?
+		echo "Okay to delete ${1}?"
 		read is_ok
-		if [ $is_ok == "yes" ]; then
+		if [ ${is_ok} == "yes" ]; then
 			rm -rfv "${1}"
 		else
 			echo "Did not delete ${1}"
