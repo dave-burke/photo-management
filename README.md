@@ -43,6 +43,10 @@ Import photos downloaded from the web:
 
 	import-photos.sh -s /home/user/Downloads/photos -t /tmp/unsorted-photos
 
+### Testing
+
+Run `test/test-import-photos.sh` to test the import script. View the contents of `test/test-data` to see what happened.
+
 ## sort-photos.sh
 
 Uses `feh` to allow the user to select photos to keep, then plays each video file in `vlc` and prompts the user to keep or discard it. Finally, this script sorts all "selected" media into folders by year and month. Folder names are in the format "yyyy-mm".

@@ -171,7 +171,7 @@ echo Mount point: ${mount_point}
 echo Source dir: ${src_photo_dir}
 echo Target dir: ${target_photo_dir}
 echo "*************"
-pause
+#pause
 
 #********************MOUNT DEVICE********************
 if [ -n "${device}" ]; then
