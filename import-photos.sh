@@ -153,6 +153,7 @@ if [ -n "${device}" ]; then
 	echo "Mounting device..."
 	if is_mtp "${device}" ; then
 		${MTP_UTIL} "${mount_point}"
+		[[ $? -eq 0 ]] || die "MTP mount failed!"
 	else
 		if is_mounted "${device}"; then
 			echo "${device} is already mounted."
