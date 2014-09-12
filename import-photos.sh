@@ -120,27 +120,6 @@ while [ "$1" ]; do
 			shift
 			#Defaulted to ${DEFAULT_TARGET_DIR}
 			;;
-		-p|--preset)
-			preset="${2}"
-			shift
-			if [ ${preset} == "android-sd" ]; then
-				#TODO these values don't get verified. Worse, MTP_UTIL doesn't get set
-				echo "Backing up from Android SD card"
-				device=mtp
-				mount_point=/media/android
-				src_photo_dir=${mount_point}/Card/DCIM
-			elif [ ${preset} == "android" ]; then
-				echo "Backing up from Android internal storage"
-				device=mtp
-				mount_point=/media/android
-				src_photo_dir=${mount_point}/DCIM
-			elif [ ${preset} == "cam" ]; then
-				echo "Backing up camera"
-				device=/dev/disk/by-label/CAMERA
-				mount_point=/media/cam
-				src_photo_dir=${mount_point}/DCIM
-			fi
-			;;
 		-*)
 			die "unrecognized option: ${1}"
 			;;
@@ -164,14 +143,6 @@ fi
 if [[ -z "${target_photo_dir}" ]]; then
 	target_photo_dir=${DEFAULT_TARGET_DIR}
 fi
-
-echo "***SUMMARY***"
-echo Device: ${device}
-echo Mount point: ${mount_point}
-echo Source dir: ${src_photo_dir}
-echo Target dir: ${target_photo_dir}
-echo "*************"
-#pause
 
 #********************MOUNT DEVICE********************
 if [ -n "${device}" ]; then
