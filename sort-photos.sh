@@ -49,6 +49,7 @@ echo "Select photos to keep"
 echo "Rotate with <>"
 echo "Mark for deletion with d"
 echo "Press q when finished"
+echo "Please wait while feh preloads the files to remove incompatible formats..."
 feh_file="${src_photo_dir}/selected.txt"
 ${FEH_CMD} --preload --draw-filename --geometry 800x600 --filelist "${feh_file}" "${src_photo_dir}"
 
