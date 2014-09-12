@@ -13,11 +13,15 @@ is_mtp() {
 }
 
 is_mounted() {
-	if [[ ! -b "${1}" ]]; then
-		echo "${1} is not a block device!"
+	local dev="$(realpath ${1})"
+	if [[ "${dev}" != "${1}" ]]; then
+		echo "Device ${1} is actually ${dev}"
+	fi
+	if [[ ! -b "${dev}" ]]; then
+		echo "${dev} is not a block device!"
 		return 1
 	fi
-	if mount | grep "${1}" >/dev/null; then
+	if mount | grep "${dev}" >/dev/null; then
 		return 0
 	else
 		return 1
