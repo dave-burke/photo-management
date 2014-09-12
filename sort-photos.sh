@@ -22,7 +22,6 @@ while [ "$1" ]; do
 		-t|--target-dir)
 			target_photo_dir="${2}"
 			shift
-			[[ -d "${target_photo_dir}" ]] || die "${target_photo_dir} is not a valid target photo directory"
 			;;
 		-*)
 			die "unrecognized option: ${1}"
@@ -39,6 +38,11 @@ done
 [[ -n "${target_photo_dir}" ]] || die "[-t|--target-dir] is required"
 [[ "${src_photo_dir}" != "${target_photo_dir}" ]] || die "--src-dir and --target-dir may not be the same"
 echo "Sorting photos from ${src_photo_dir} to ${target_photo_dir}"
+
+if [[ ! -d "${target_photo_dir}" ]]; then
+	mkdir --verbose --parents "${target_photo_dir}"
+	[[ $? -eq 0 ]] || die "Failed to create target photo dir at ${target_photo_dir}"
+fi
 
 #********************Filter photos*************************
 echo "Select photos to keep"
