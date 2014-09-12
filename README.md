@@ -14,10 +14,10 @@ Imports photos (and video!) from a given source. All photos will be put in the r
 	
 ### Options
 
-	-d | --device device
+	-d | --device
 	(Optional) The device to mount. Use "mtp" to mount an mtp device (e.g. an Android device).
 
-	-m | --mount-point mount point
+	-m | --mount-point
 	(Optional) The mountpoint for the device specified by -d.
 
 	-u | --use-sudo
