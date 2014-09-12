@@ -199,8 +199,7 @@ echo "Deleting junk..."
 rm -v "${target_photo_dir}"/*.CTG
 
 echo "Deleting source files from ${src_photo_dir}..."
-echo "TESTING: skipping delete step"
-#safe_delete "${src_photo_dir}"
+safe_delete "${src_photo_dir}"
 
 #********************UNMOUNT THE DEVICE********************
 if [ -n "${device}" ]; then
