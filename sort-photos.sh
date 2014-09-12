@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $(dirname "${0}")/common.sh
+source "$(dirname $(realpath ${0}))/common.sh"
 
 verify_command feh || die "You must have feh installed to select photos"
 FEH_CMD=${VERIFIED_COMMAND}

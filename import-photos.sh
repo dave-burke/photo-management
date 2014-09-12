@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEFAULT_TARGET_DIR=/tmp/photos
-source $(dirname ${0})/common.sh
+source "$(dirname $(realpath ${0}))/common.sh"
 
 #********************FUNCTIONS********************
 is_mtp() {
