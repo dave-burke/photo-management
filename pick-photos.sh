@@ -20,6 +20,10 @@ while [ "$1" ]; do
 			target_photo_dir="${2}"
 			shift
 			;;
+		-f|--favorites-dir)
+			fav_photo_dir="${2}"
+			shift
+			;;
 		-*)
 			die "unrecognized option: ${1}"
 			;;
@@ -32,19 +36,33 @@ done
 
 #********************VERIFY CLI********************
 [[ -n "${src_photo_dir}" ]] || die "[-s|--src-dir] is required"
-[[ -n "${target_photo_dir}" ]] || die "[-t|--target-dir] is required"
-[[ "${src_photo_dir}" != "${target_photo_dir}" ]] || die "--src-dir and --target-dir may not be the same"
-echo "Sorting photos from ${src_photo_dir} to ${target_photo_dir}"
+[[ -n "${target_photo_dir}" ]] || [[ -n "${fav_photo_dir}" ]] || die "[-t|--target-dir] or [-f|--favorites-dir] is required"
 
-if [[ ! -d "${target_photo_dir}" ]]; then
-	mkdir --verbose --parents "${target_photo_dir}"
-	[[ $? -eq 0 ]] || die "Failed to create target photo dir at ${target_photo_dir}"
+#********************SETUP DIRS********************
+if [[ -n "${target_photo_dir}" ]]; then
+	if [[ ! -d "${target_photo_dir}" ]]; then
+		mkdir --verbose --parents "${target_photo_dir}"
+		[[ $? -eq 0 ]] || die "Failed to create target photo dir at ${target_photo_dir}"
+	fi
+	echo "Sorting photos from ${src_photo_dir} to ${target_photo_dir}"
+fi
+if [[ -n "${fav_photo_dir}" ]]; then
+	if [[ ! -d "${fav_photo_dir}" ]]; then
+		mkdir --verbose --parents "${fav_photo_dir}"
+		[[ $? -eq 0 ]] || die "Failed to create fav photo dir at ${fav_photo_dir}"
+	fi
+	echo "Saving favorites in ${fav_photo_dir}"
 fi
 
 #********************Filter photos*************************
 echo "Select photos to keep"
 echo "Rotate with <>"
-echo "Mark for deletion with d"
+if [[ -d "${fav_photo_dir}" ]]; then
+	echo "Save as favorite with s"
+fi
+if [[ -d "${target_photo_dir}" ]]; then
+	echo "Mark for deletion with d"
+fi
 echo "Press q when finished"
 echo "Please wait while feh preloads the files to remove incompatible formats..."
 feh_file="${src_photo_dir}/selected.txt"
@@ -83,21 +101,24 @@ for v in ${src_photo_dir}/*.mov \
 done
 shopt -u nullglob
 
-#********************SET ASIDE SELECTED FILES***********************
-echo "Moving selected photos..."
-while read f; do
-	mv -v "${f}" "${target_photo_dir}"
-done < "${feh_file}"
-safe_delete "${feh_file}"
+#********************MOVE FAVORITES****************************
+if [[ -d "${fav_photo_dir}" ]]; then
+	echo "Moving favorite photos..."
+	mv -v feh_* ${fav_photo_dir}
+fi
 
-if [ -n "$(ls -A "${src_photo_dir}")" ]; then
-	ls -A "${src_photo_dir}"
-	echo "The files above were NOT selected or sorted. Are you sure they can be deleted?"
-	read is_ok
-	if [ "${is_ok:0:1}" == "y" ]; then
+#********************MOVE SELECTED FILES***********************
+if [[ -d "${target_photo_dir}" ]]; then
+	echo "Moving selected media..."
+	while read f; do
+		mv -v "${f}" "${target_photo_dir}"
+	done < "${feh_file}"
+	safe_delete "${feh_file}"
+
+	if [ -n "$(ls -A "${src_photo_dir}")" ]; then
+		ls -A "${src_photo_dir}"
+		echo "The files above were NOT selected and will be trashed."
 		safe_delete "${src_photo_dir}"
-	else
-		echo "Did not delete any files in ${src_photo_dir}"
 	fi
 fi
 

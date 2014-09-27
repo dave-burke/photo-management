@@ -16,12 +16,12 @@ rm -rf test-data
 
 ### SETUP
 
-mkdir -p "test-data/source" "test-data/target"
+mkdir -p "test-data/source" "test-data/target" "test-data/favorites"
 cp -v samples/* "test-data/source"
 
 ### TEST
 
-../pick-photos.sh -s "test-data/source" -t "test-data/target"
+../pick-photos.sh -s "test-data/source" -t "test-data/target" -f "test-data/favorites"
 
 ### VERIFY
 
