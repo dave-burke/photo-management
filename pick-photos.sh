@@ -69,37 +69,39 @@ feh_file="${src_photo_dir}/selected.txt"
 ${FEH_CMD} --preload --draw-filename --geometry 800x600 --filelist "${feh_file}" "${src_photo_dir}"
 
 #********************Filter Videos*************************
-echo "Your videos will be played one by one, and you will be asked whether to select each one. Ready?"
-pause
-# nullglob prevents bash from making a fuss when one of the filetypes isn't present
-# however, it can cause problems if you aren't careful (e.g. with `ls *.nomatch`). So we
-# unset it at the end of the loop
-shopt -s nullglob
-for v in ${src_photo_dir}/*.mov \
-		${src_photo_dir}/*.MOV \
-		${src_photo_dir}/*.mp4 \
-		${src_photo_dir}/*.MP4 \
-		${src_photo_dir}/*.m4v \
-		${src_photo_dir}/*.M4V \
-		${src_photo_dir}/*.mkv \
-		${src_photo_dir}/*.MKV; do
-	if [[ -f "${v}" ]]; then
-		v=$(realpath "${v}")
-		echo "Found video file ${v}"
-		vlc "${v}"
-		echo "Do you want to keep that video?"
-		read keep_vid 
-		if [ ${keep_vid:0:1} == "y" ]; then
-			echo "Selected ${v}"
-			echo "${v}" >> "${feh_file}"
+if [[ -d "${target_photo_dir}" ]]; then
+	echo "Your videos will be played one by one, and you will be asked whether to select each one. Ready?"
+	pause
+	# nullglob prevents bash from making a fuss when one of the filetypes isn't present
+	# however, it can cause problems if you aren't careful (e.g. with `ls *.nomatch`). So we
+	# unset it at the end of the loop
+	shopt -s nullglob
+	for v in ${src_photo_dir}/*.mov \
+			${src_photo_dir}/*.MOV \
+			${src_photo_dir}/*.mp4 \
+			${src_photo_dir}/*.MP4 \
+			${src_photo_dir}/*.m4v \
+			${src_photo_dir}/*.M4V \
+			${src_photo_dir}/*.mkv \
+			${src_photo_dir}/*.MKV; do
+		if [[ -f "${v}" ]]; then
+			v=$(realpath "${v}")
+			echo "Found video file ${v}"
+			vlc "${v}"
+			echo "Do you want to keep that video?"
+			read keep_vid 
+			if [ ${keep_vid:0:1} == "y" ]; then
+				echo "Selected ${v}"
+				echo "${v}" >> "${feh_file}"
+			else
+				echo "Did not select ${v}"
+			fi
 		else
-			echo "Did not select ${v}"
+			echo "${v} is not a video file"
 		fi
-	else
-		echo "${v} is not a video file"
-	fi
-done
-shopt -u nullglob
+	done
+	shopt -u nullglob
+fi
 
 #********************MOVE FAVORITES****************************
 if [[ -d "${fav_photo_dir}" ]]; then
@@ -121,5 +123,7 @@ if [[ -d "${target_photo_dir}" ]]; then
 		pause
 		safe_delete "${src_photo_dir}"
 	fi
+else
+	safe_delete "${feh_file}"
 fi
 
