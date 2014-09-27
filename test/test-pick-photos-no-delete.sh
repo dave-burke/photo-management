@@ -15,7 +15,7 @@ cp -v samples/* "test-data/source"
 
 ### TEST
 
-../pick-photos.sh -s "test-data/source" -t "test-data/target" -f "test-data/favorites"
+../pick-photos.sh -s "test-data/source" -t "test-data/target" -f "test-data/favorites" -n
 
 ### VERIFY
 

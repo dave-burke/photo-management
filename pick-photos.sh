@@ -24,6 +24,10 @@ while [ "$1" ]; do
 			fav_photo_dir="${2}"
 			shift
 			;;
+		-n|--no-delete-src)
+			no_delete_src="true"
+			shift
+			;;
 		-*)
 			die "unrecognized option: ${1}"
 			;;
@@ -119,9 +123,11 @@ if [[ -d "${target_photo_dir}" ]]; then
 
 	if [ -n "$(ls -A "${src_photo_dir}")" ]; then
 		ls -A "${src_photo_dir}"
-		echo "The files above were NOT selected and will be trashed."
-		pause
-		safe_delete "${src_photo_dir}"
+		echo "The files above were NOT selected."
+		if [[ -z "${no_delete_src}" ]]; then
+			pause
+			safe_delete "${src_photo_dir}"
+		fi
 	fi
 else
 	safe_delete "${feh_file}"
