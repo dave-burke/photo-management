@@ -118,6 +118,7 @@ if [[ -d "${target_photo_dir}" ]]; then
 	if [ -n "$(ls -A "${src_photo_dir}")" ]; then
 		ls -A "${src_photo_dir}"
 		echo "The files above were NOT selected and will be trashed."
+		pause
 		safe_delete "${src_photo_dir}"
 	fi
 fi
