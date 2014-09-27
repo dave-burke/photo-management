@@ -22,7 +22,12 @@ verify_command() {
 }
 
 safe_delete() {
-	if command -v kioclient >/dev/null; then
+	if [[ -b ${1} ]]; then
+		echo "${1} is a device and cannot be deleted"
+	elif command -v trash >/dev/null; then
+		echo "Trashing ${1}"
+		trash "${1}"
+	elif command -v kioclient >/dev/null; then
 		echo "Trashing ${1}"
 		kioclient move "${1}" trash:/
 	else
