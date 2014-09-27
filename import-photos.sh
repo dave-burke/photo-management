@@ -124,6 +124,10 @@ while [ "$1" ]; do
 			shift
 			#Defaulted to ${DEFAULT_TARGET_DIR}
 			;;
+		-n|--no-delete-src)
+			no_delete_src="true"
+			shift
+			;;
 		-*)
 			die "unrecognized option: ${1}"
 			;;
@@ -198,8 +202,10 @@ safe_flatten "${src_photo_dir}" "${target_photo_dir}"
 echo "Deleting junk..."
 rm -v "${target_photo_dir}"/*.CTG
 
-echo "Deleting source files from ${src_photo_dir}..."
-safe_delete "${src_photo_dir}"
+if [[ -z "${no_delete_src}" ]]; then
+	echo "Deleting source files from ${src_photo_dir}..."
+	safe_delete "${src_photo_dir}"
+fi
 
 #********************UNMOUNT THE DEVICE********************
 if [ -n "${device}" ]; then
