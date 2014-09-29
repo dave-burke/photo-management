@@ -39,7 +39,7 @@ fi
 
 #********************SORT SELECTED FILES***********************
 echo "Sorting photos from ${src_photo_dir} to ${target_photo_dir}"
-${EXIFTOOL_CMD} -ext '*' '-Directory<CreateDate' -d "${target_photo_dir}/%Y-%m" "${src_photo_dir}"
+${EXIFTOOL_CMD} -preserve -extension '*' '-Directory<CreateDate' -dateFormat "${target_photo_dir}/%Y-%m" "${src_photo_dir}"
 [[ $? -eq 0 ]] || die "Failed to organize photos by CreateDate!"
 
 if [ -n "$(ls -A "${src_photo_dir}")" ]; then

@@ -11,7 +11,7 @@ rm -rf test-data
 ### SETUP
 
 mkdir -p "test-data/source" "test-data/target"
-cp -v samples/* "test-data/source"
+cp -arv samples/* "test-data/source"
 
 ### TEST
 
