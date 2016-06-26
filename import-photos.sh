@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 DEFAULT_TARGET_DIR=/tmp/photos
 source "$(dirname $(realpath ${0}))/common.sh"
 
@@ -126,13 +128,12 @@ while [ "$1" ]; do
 			;;
 		-n|--no-delete-src)
 			no_delete_src="true"
-			shift
 			;;
 		-*)
 			die "unrecognized option: ${1}"
 			;;
 		*)
-			break
+			die "unrecognized arg: ${1}"
 			;;
 	esac
 	shift
@@ -200,7 +201,7 @@ echo "Copying photos..."
 safe_flatten "${src_photo_dir}" "${target_photo_dir}"
 
 echo "Deleting junk..."
-rm -v "${target_photo_dir}"/*.CTG
+rm -v "${target_photo_dir}"/*.CTG || echo "No CTG files"
 
 if [[ -z "${no_delete_src}" ]]; then
 	echo "Deleting source files from ${src_photo_dir}..."

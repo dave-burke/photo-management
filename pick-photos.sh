@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 source "$(dirname $(realpath ${0}))/common.sh"
 
 verify_command feh || die "You must have feh installed to select photos"
@@ -26,7 +28,6 @@ while [ "$1" ]; do
 			;;
 		-n|--no-delete-src)
 			no_delete_src="true"
-			shift
 			;;
 		-*)
 			die "unrecognized option: ${1}"

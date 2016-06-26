@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 source "$(dirname $(realpath ${0}))/common.sh"
 
 verify_command exiftool || die "You must have exiftool installed to sort photos"
