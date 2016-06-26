@@ -14,11 +14,11 @@ cd $(dirname ${0})
 
 ### CLEAN
 
-rm -rf test-data
+rm -rfv test-data
 
 ### SETUP
 
-mkdir -p "test-data/source/sub dir" "test-data/target"
+mkdir -pv "test-data/source/sub dir" "test-data/target"
 
 # Happy path
 touch "test-data/source/photo1.jpg"

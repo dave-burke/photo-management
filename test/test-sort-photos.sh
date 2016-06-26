@@ -14,11 +14,11 @@ cd $(dirname ${0})
 
 ### CLEAN
 
-rm -rf test-data
+rm -rfv test-data
 
 ### SETUP
 
-mkdir -p "test-data/source" "test-data/target"
+mkdir -pv "test-data/source" "test-data/target"
 cp -arv samples/* "test-data/source"
 
 ### TEST

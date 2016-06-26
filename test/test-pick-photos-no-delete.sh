@@ -8,11 +8,11 @@ cd $(dirname ${0})
 
 ### CLEAN
 
-rm -rf test-data
+rm -rfv test-data
 
 ### SETUP
 
-mkdir -p "test-data/source"
+mkdir -pv "test-data/source"
 cp -v samples/* "test-data/source"
 
 ### TEST
