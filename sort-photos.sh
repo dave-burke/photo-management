@@ -38,19 +38,24 @@ if [[ ! -d "${target_photo_dir}" ]]; then
 fi
 
 #********************SORT SELECTED FILES***********************
-echo "Sorting photos from ${src_photo_dir} to ${target_photo_dir}"
-${EXIFTOOL_CMD} -preserve -extension '*' '-Directory<CreateDate' -dateFormat "${target_photo_dir}/%Y-%m" "${src_photo_dir}"
-[[ $? -eq 0 ]] || die "Failed to organize photos by CreateDate!"
+function sortBy {
+	local field=${1}
+	echo "Sorting ${src_photo_dir} to ${target_photo_dir} by ${field}"
+	${EXIFTOOL_CMD} -ignoreMinorErrors -recurse -preserve -progress -extension '*' "-Directory<${field}" -dateFormat "${target_photo_dir}/%Y/%m" "${src_photo_dir}"
+	#[[ $? -eq 0 ]] || die "Failed to organize photos by ${field}!"
+	leftovers="$(find "${src_photo_dir}" -type f)"
+	if [ -n "${leftovers}" ]; then
+		echo "Some files could not be sorted by '${field}'."
+		#echo "${leftovers}"
+		return 1
+	else
+		echo "All files sorted"
+		return 0
+	fi
+}
 
-if [ -n "$(ls -A "${src_photo_dir}")" ]; then
-	echo "The following files did not have 'CreateDate' exif data. They will be sorted by file modified time"
-	ls -A "${src_photo_dir}"
-	${EXIFTOOL_CMD} -ext '*' '-Directory<FileModifyDate' -d "${target_photo_dir}/%Y-%m" "${src_photo_dir}"
-	[[ $? -eq 0 ]] || die "Failed to organize photos by FileModifyDate!"
-fi
-if [ -n "$(ls -A "${src_photo_dir}")" ]; then
-	die "Some files were not sorted! Sort them manually in ${src_photo_dir}"
-fi
+echo "Sorting photos from ${src_photo_dir} to ${target_photo_dir}"
+sortBy DateTimeOriginal || sortBy CreateDate || sortBy FileModifyDate || die "Some files were not sorted! Sort them manually in ${src_photo_dir}"
 
 #********************CLEAN UP***********************
 echo "Sorted all photos!"
