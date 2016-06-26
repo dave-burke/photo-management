@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ### INIT
 
 cd $(dirname ${0})

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 FAILED=false
 fail_test() {
 	echo "${1}"
