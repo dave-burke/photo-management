@@ -116,14 +116,13 @@ while [ "$1" ]; do
 			use_sudo=true
 			;;
 		-s|--source-dir)
-			src_photo_dir="${2}"
+			import_source_dir="${2}"
 			shift
 			#Can't verify until after mounting
 			;;
 		-t|--target-dir)
-			target_photo_dir="${2}"
+			import_target_dir="${2}"
 			shift
-			#Defaulted to ${DEFAULT_TARGET_DIR}
 			;;
 		-n|--no-delete-src)
 			no_delete_src="true"
@@ -139,7 +138,7 @@ while [ "$1" ]; do
 done
 
 #********************VERIFY CLI********************
-[[ -n "${src_photo_dir}" ]] || die "[-s|--src-dir] is required"
+[[ -n "${import_source_dir}" ]] || die "[-s|--src-dir] is required"
 if [ -n "${device}" -a -z "${mount_point}" ]; then
 	die "[-m|--mount-point] is required when you specify a [-d|--device]"
 fi
@@ -172,34 +171,34 @@ fi
 
 #********************VERIFY THE PHOTO SOURCE DIRECTORY********************
 echo -n "Checking source directory..."
-if [ -d "${src_photo_dir}" ]; then
-	echo "Found ${src_photo_dir}"
+if [ -d "${import_source_dir}" ]; then
+	echo "Found ${import_source_dir}"
 else
-	die "Couldn't find source photo directory on device: ${src_photo_dir}"
+	die "Couldn't find source photo directory on device: ${import_source_dir}"
 fi
 
 #********************CREATE TARGET PHOTO DIRECTORY********************
 echo -n "Checking target directory..."
-if [ -d "${target_photo_dir}" ]; then
-	echo "Found ${target_photo_dir}"
+if [ -d "${import_target_dir}" ]; then
+	echo "Found ${import_target_dir}"
 else
 	echo -n "Not found..."
-	mkdir -pv "${target_photo_dir}"
-	if [ ! -d "${target_photo_dir}" ]; then
-		die "Couldn't make directory at ${target_photo_dir}"
+	mkdir -pv "${import_target_dir}"
+	if [ ! -d "${import_target_dir}" ]; then
+		die "Couldn't make directory at ${import_target_dir}"
 	fi
 fi
 
 #********************MOVE THE PHOTOS********************
 echo "Copying photos..."
-safe_flatten "${src_photo_dir}" "${target_photo_dir}"
+safe_flatten "${import_source_dir}" "${import_target_dir}"
 
 echo "Deleting junk..."
-rm -v "${target_photo_dir}"/*.CTG || echo "No CTG files"
+rm -v "${import_target_dir}"/*.CTG || echo "No CTG files"
 
 if [[ -z "${no_delete_src}" ]]; then
-	echo "Deleting source files from ${src_photo_dir}..."
-	safe_delete "${src_photo_dir}"
+	echo "Deleting source files from ${import_source_dir}..."
+	safe_delete "${import_source_dir}"
 fi
 
 #********************UNMOUNT THE DEVICE********************

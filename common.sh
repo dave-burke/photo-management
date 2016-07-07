@@ -55,3 +55,13 @@ pause() {
 	read
 }
 
+if [[ -n ${PHOTO_MGMT_CONFIG} ]]; then
+	echo "Loading ${PHOTO_MGMT_CONFIG}"
+	source "${PHOTO_MGMT_CONFIG}"
+elif [[ -n "$(dirname $(realpath ${0}))/config.cfg" ]]; then
+	echo "Using default config"
+	source "$(dirname $(realpath ${0}))/config.cfg"
+else
+	die "No config found"
+fi
+

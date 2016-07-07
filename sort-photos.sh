@@ -11,12 +11,12 @@ EXIFTOOL_CMD=${VERIFIED_COMMAND}
 while [ "$1" ]; do
 	case $1 in
 		-s|--src-dir)
-			src_photo_dir="${2}"
+			sort_source_dir="${2}"
 			shift
-			[[ -d "${src_photo_dir}" ]] || die "${src_photo_dir} is not a valid source photo directory"
+			[[ -d "${sort_source_dir}" ]] || die "${sort_source_dir} is not a valid source photo directory"
 			;;
 		-t|--target-dir)
-			target_photo_dir="${2}"
+			sort_target_dir="${2}"
 			shift
 			;;
 		-*)
@@ -30,22 +30,22 @@ while [ "$1" ]; do
 done
 
 #********************VERIFY CLI********************
-[[ -n "${src_photo_dir}" ]] || die "[-s|--src-dir] is required"
-[[ -n "${target_photo_dir}" ]] || die "[-t|--target-dir] is required"
-[[ "${src_photo_dir}" != "${target_photo_dir}" ]] || die "--src-dir and --target-dir may not be the same"
+[[ -n "${sort_source_dir}" ]] || die "[-s|--src-dir] is required"
+[[ -n "${sort_target_dir}" ]] || die "[-t|--target-dir] is required"
+[[ "${sort_source_dir}" != "${sort_target_dir}" ]] || die "--src-dir and --target-dir may not be the same"
 
-if [[ ! -d "${target_photo_dir}" ]]; then
-	mkdir --verbose --parents "${target_photo_dir}"
-	[[ $? -eq 0 ]] || die "Failed to create target photo dir at ${target_photo_dir}"
+if [[ ! -d "${sort_target_dir}" ]]; then
+	mkdir --verbose --parents "${sort_target_dir}"
+	[[ $? -eq 0 ]] || die "Failed to create target photo dir at ${sort_target_dir}"
 fi
 
 #********************SORT SELECTED FILES***********************
 function sortBy {
 	local field=${1}
-	echo "Sorting ${src_photo_dir} to ${target_photo_dir} by ${field}"
-	${EXIFTOOL_CMD} -ignoreMinorErrors -recurse -preserve -progress -extension '*' "-Directory<${field}" -dateFormat "${target_photo_dir}/%Y/%m" "${src_photo_dir}"
+	echo "Sorting ${sort_source_dir} to ${sort_target_dir} by ${field}"
+	${EXIFTOOL_CMD} -ignoreMinorErrors -recurse -preserve -progress -extension '*' "-Directory<${field}" -dateFormat "${sort_target_dir}/%Y/%m" "${sort_source_dir}"
 	#[[ $? -eq 0 ]] || die "Failed to organize photos by ${field}!"
-	leftovers="$(find "${src_photo_dir}" -type f)"
+	leftovers="$(find "${sort_source_dir}" -type f)"
 	if [ -n "${leftovers}" ]; then
 		echo "Some files could not be sorted by '${field}'."
 		#echo "${leftovers}"
@@ -56,10 +56,10 @@ function sortBy {
 	fi
 }
 
-echo "Sorting photos from ${src_photo_dir} to ${target_photo_dir}"
-sortBy DateTimeOriginal || sortBy CreateDate || sortBy FileModifyDate || die "Some files were not sorted! Sort them manually in ${src_photo_dir}"
+echo "Sorting photos from ${sort_source_dir} to ${sort_target_dir}"
+sortBy DateTimeOriginal || sortBy CreateDate || sortBy FileModifyDate || die "Some files were not sorted! Sort them manually in ${sort_source_dir}"
 
 #********************CLEAN UP***********************
 echo "Sorted all photos!"
-safe_delete "${src_photo_dir}"
+safe_delete "${sort_source_dir}"
 

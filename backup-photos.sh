@@ -14,9 +14,9 @@ maxYear=2100
 while [ "$1" ]; do
 	case $1 in
 		-s|--src-dir)
-			src_photo_dir=$2
+			backup_source_dir=$2
 			shift
-			[[ -d ${src_photo_dir} ]] || die "${src_photo_dir} is not a valid source photo directory"
+			[[ -d ${backup_source_dir} ]] || die "${backup_source_dir} is not a valid source photo directory"
 			;;
 		-t|--target)
 			backup_target=$2
@@ -51,13 +51,13 @@ export AWS_SECRET_ACCESS_KEY
 
 if [[ -z "$command" ]]; then
 	#********************VERIFY CLI********************
-	[[ -d "${src_photo_dir}" ]] || die "[-s|--src-dir] is required"
+	[[ -d "${backup_source_dir}" ]] || die "[-s|--src-dir] is required"
 	[[ -n "${backup_target}" ]] || die "[-t|--target-dir] is required"
 	[[ -n "${year}" ]] || die "[-y|--year] is required"
 	[[ ${year} -ge ${minYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
 	[[ ${year} -le ${maxYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
-	[[ -d "${src_photo_dir}/${year}" ]] || die "No directory for ${year} in ${src_photo_dir}"
-	src_photo_dir+="/${year}"
+	[[ -d "${backup_source_dir}/${year}" ]] || die "No directory for ${year} in ${backup_source_dir}"
+	backup_source_dir+="/${year}"
 
 	#********************DO BACKUP********************
 	args+="\
@@ -73,7 +73,7 @@ if [[ -z "$command" ]]; then
 		backup_target="file://${backup_target}/${year}"
 	fi
 
-	duplicity ${args} ${src_photo_dir} ${backup_target}
+	duplicity ${args} ${backup_source_dir} ${backup_target}
 else
 	duplicity ${command} ${args} $@
 fi
