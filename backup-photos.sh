@@ -10,6 +10,9 @@ verify_command duplicity || die "duplicity is required for backing up encrypted 
 minYear=1900
 maxYear=2100
 
+command="${1}"
+shift
+
 #********************PARSE CLI********************
 while [ "$1" ]; do
 	case $1 in
@@ -26,55 +29,56 @@ while [ "$1" ]; do
 			year=$2
 			shift
 			;;
-		-c|--command)
-			command=$2
-			shift
-			;;
-		-*)
-			[[ -n "${command}" ]] || die "unrecognized option: $1"
-			break
-			;;
 		*)
-			break
+			args+=" $1 "
 			;;
 	esac
 	shift
 done
 
+#********************VERIFY CLI********************
+[[ -d "${backup_source_dir}" ]] || die "[-s|--src-dir] is required"
+[[ -n "${backup_target}" ]] || die "[-t|--target-dir] is required"
+[[ -n "${year}" ]] || die "[-y|--year] is required"
+[[ ${year} -ge ${minYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
+[[ ${year} -le ${maxYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
+
+backup_source_dir+="/${year}"
+backup_target+="/${year}"
+
 for p in manifest archive signature; do
 	args+=" --file-prefix-$p ${p}- "
 done
+
+args+="\
+	--verbosity info \
+	--progress \
+	--name photos-${year} \
+	"
+	#--dry-run \
 
 export PASSPHRASE
 export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
 
-if [[ -z "$command" ]]; then
-	#********************VERIFY CLI********************
-	[[ -d "${backup_source_dir}" ]] || die "[-s|--src-dir] is required"
-	[[ -n "${backup_target}" ]] || die "[-t|--target-dir] is required"
-	[[ -n "${year}" ]] || die "[-y|--year] is required"
-	[[ ${year} -ge ${minYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
-	[[ ${year} -le ${maxYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
-	[[ -d "${backup_source_dir}/${year}" ]] || die "No directory for ${year} in ${backup_source_dir}"
-	backup_source_dir+="/${year}"
+echo "command=${command}"
+echo "args=${args}"
+echo "at=${@}"
+echo "src=${backup_source_dir}"
+echo "tgt=${backup_target}"
 
-	#********************DO BACKUP********************
-	args+="\
-		--verbosity info \
-		--full-if-older-than 1Y \
-		--progress \
-		--name photos-${year} \
-		"
-
-	if [[ "S3" == ${backup_target} || "s3" == ${backup_target} ]]; then
-		backup_target=s3+http://${BUCKET}/${year}
-	else
-		backup_target="file://${backup_target}/${year}"
-	fi
-
-	duplicity ${args} ${backup_source_dir} ${backup_target}
-else
-	duplicity ${command} ${args} $@
-fi
+case $command in
+	full|incr|increment|incremental)
+		duplicity ${command} ${args} ${@} "${backup_source_dir}" "${backup_target}"
+		;;
+	verify|restore)
+		duplicity ${command} ${args} ${@} "${backup_target}" "${backup_source_dir}"
+		;;
+	list|list-current-files)
+		duplicity list-current-files ${args} ${@} "${backup_target}"
+		;;
+	*)
+		die "Unknown command: ${command}"
+		;;
+esac
 

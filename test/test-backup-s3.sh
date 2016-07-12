@@ -49,7 +49,7 @@ source ../secrets.cfg
 ../backup-photos.sh -c verify "s3+http://${BUCKET}/2016" "test-data/source/2016" || fail_test "Verify returned non-zero"
 
 if [[ "${FAILED}" == true ]]; then
-	echo "FAILED!"
+	echo "FAILED ${0}!"
 	exit 1
 else
 	echo "SUCCESS!"

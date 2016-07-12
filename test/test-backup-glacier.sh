@@ -36,9 +36,14 @@ touch test-data/source/2016/02/feb2.txt
 touch test-data/source/2016/03/mar1.txt
 touch test-data/source/2015/04/may1.txt
 
+src="test-data/source"
+tgt="file://test-data/target"
+year=2016
+
 ### TEST INITIAL
 
-../backup-photos.sh -s "test-data/source" -t "test-data/target" -y 2016
+../backup-photos.sh full -s "${src}" -t "${tgt}" -y ${year}
+../backup-photos.sh verify -s "${src}" -t "${tgt}" -y ${year}
 
 ### TEST UPDATE
 
@@ -47,20 +52,18 @@ rm -v "test-data/target/2016/archive-"*
 sleep 2
 
 touch test-data/source/2016/03/mar2.txt
-../backup-photos.sh -s "test-data/source" -t "test-data/target" -y 2016
+../backup-photos.sh incr -s "${src}" -t "${tgt}" -y ${year}
 
 ### VERIFY
 
-# Can't verify after archives are removed
-#../backup-photos.sh -c verify "file://test-data/target/2016" "test-data/source/2016" || fail_test "Verify returned non-zero"
-initFiles="$(../backup-photos.sh -c list-current-files --time "${initTime}" "file://test-data/target/2016")"
-curFiles="$(../backup-photos.sh -c list-current-files "file://test-data/target/2016")"
+initFiles="$(../backup-photos.sh list --time "${initTime}" -t "${tgt}" -y ${year})"
+curFiles="$(../backup-photos.sh list -t "${tgt}" -y ${year})"
 
 echo "${initFiles}" | grep -v "mar2" || fail_test "Init files contained updated file"
 echo "${curFiles}" | grep "mar2" || fail_test "Current files did not contain updated file"
 
 if [[ "${FAILED}" == true ]]; then
-	echo "FAILED!"
+	echo "FAILED ${0}!"
 	exit 1
 else
 	echo "SUCCESS!"
