@@ -2,7 +2,6 @@
 
 set -e
 
-DEFAULT_TARGET_DIR=/tmp/photos
 source "$(dirname $(realpath ${0}))/common.sh"
 
 #********************FUNCTIONS********************
@@ -146,11 +145,6 @@ if [ -n "${device}" -a -z "${mount_point}" ]; then
 fi
 if [ -n "${mount_point}" -a -z "${device}" ]; then
 	die "[-d|--device] is required when you specify a [-m|--mount-point]"
-fi
-
-#********************SET DEFAULTS********************
-if [[ -z "${target_photo_dir}" ]]; then
-	target_photo_dir=${DEFAULT_TARGET_DIR}
 fi
 
 #********************MOUNT DEVICE********************
