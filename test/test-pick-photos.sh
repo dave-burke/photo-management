@@ -27,3 +27,4 @@ else
 	ls -A test-data/*
 fi
 
+echo "No automatic verification. Check the output above based on your interactions."

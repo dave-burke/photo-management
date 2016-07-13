@@ -34,7 +34,7 @@ cp -arv samples/* "test-data/source"
 [[ -f "test-data/target/2016/02/t-rex.jpeg" ]] || fail_test "t-rex.jpeg was not sorted!"
 
 if [[ "${FAILED}" == true ]]; then
-	echo "FAILED!"
+	echo "FAILED ${0}!"
 	exit 1
 else
 	echo "SUCCESS!"

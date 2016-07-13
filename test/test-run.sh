@@ -33,7 +33,7 @@ if ! ls "test-data/backup/2016" | grep -q "archive"; then
 fi
 
 if [[ "${FAILED}" == true ]]; then
-	echo "FAILED!"
+	echo "FAILED ${0}!"
 	exit 1
 else
 	echo "SUCCESS!"

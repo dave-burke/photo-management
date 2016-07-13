@@ -56,7 +56,7 @@ touch "test-data/target/duplicate.jpg"
 [[ -f "test-data/target/duplicate-2.jpg" ]] || fail_test "'duplicate-2.jpg' was not imported!"
 
 if [[ "${FAILED}" == true ]]; then
-	echo "FAILED!"
+	echo "FAILED ${0}!"
 	exit 1
 else
 	echo "SUCCESS!"
