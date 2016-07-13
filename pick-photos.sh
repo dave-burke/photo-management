@@ -111,7 +111,7 @@ fi
 #********************MOVE FAVORITES****************************
 if [[ -d "${fav_photo_dir}" ]]; then
 	echo "Moving favorite photos..."
-	mv -v feh_* ${fav_photo_dir}
+	mv -v feh_* ${fav_photo_dir} || echo "No favorites found!"
 fi
 
 #********************MOVE SELECTED FILES***********************
