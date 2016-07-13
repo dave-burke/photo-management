@@ -18,35 +18,25 @@ rm -rfv test-data
 
 ### SETUP
 
-mkdir -pv "test-data/source/2016/01" "test-data/target"
-mkdir -pv "test-data/source/2016/02" "test-data/target"
-mkdir -pv "test-data/source/2016/03" "test-data/target"
-mkdir -pv "test-data/source/2015/04" "test-data/target"
+mkdir -pv "test-data/source/1901/"{01,02,03} "test-data/target"
+mkdir -pv "test-data/source/1900/04" "test-data/target"
 
-touch test-data/source/2016/01/jan1.txt
-touch test-data/source/2016/01/jan2.txt
-touch test-data/source/2016/01/jan3.txt
-touch test-data/source/2016/02/feb1.txt
-touch test-data/source/2016/02/feb2.txt
-touch test-data/source/2016/03/mar1.txt
-touch test-data/source/2015/04/may1.txt
+touch test-data/source/1901/01/jan1.txt
+touch test-data/source/1901/01/jan2.txt
+touch test-data/source/1901/01/jan3.txt
+touch test-data/source/1901/02/feb1.txt
+touch test-data/source/1901/02/feb2.txt
+touch test-data/source/1901/03/mar1.txt
+touch test-data/source/1900/04/may1.txt
 
 ### TEST INITIAL
 
-../backup-photos.sh -s "test-data/source" -t "s3" -y 2016
-
-### TEST UPDATE
-
-initTime=$(date -Is)
-sleep 2
-
-touch test-data/source/2016/03/mar2.txt
-../backup-photos.sh -s "test-data/source" -t "s3" -y 2016
+../backup-photos.sh full -s "test-data/source" -t "s3" -y 1901
 
 ### VERIFY
 
-source ../secrets.cfg
-../backup-photos.sh -c verify "s3+http://${BUCKET}/2016" "test-data/source/2016" || fail_test "Verify returned non-zero"
+../backup-photos.sh verify -s "test-data/source" -t "s3" -y 1901 || fail_test "Verify returned non-zero"
+../backup-photos.sh list -t "s3" -y 1901 || fail_test "List returned non-zero"
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"

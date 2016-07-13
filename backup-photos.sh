@@ -38,11 +38,14 @@ done
 
 #********************VERIFY CLI********************
 [[ -d "${backup_source_dir}" ]] || die "[-s|--src-dir] is required"
-[[ -n "${backup_target}" ]] || die "[-t|--target-dir] is required"
+[[ -n "${backup_target}" ]] || die "[-t|--target] is required"
 [[ -n "${year}" ]] || die "[-y|--year] is required"
 [[ ${year} -ge ${minYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
 [[ ${year} -le ${maxYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
 
+if [[ "${backup_target}" == "s3" ]]; then
+	backup_target="s3+http://${S3_BUCKET}"
+fi
 backup_source_dir+="/${year}"
 backup_target+="/${year}"
 
