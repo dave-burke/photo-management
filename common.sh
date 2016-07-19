@@ -61,7 +61,5 @@ if [[ -n ${PHOTO_MGMT_CONFIG} ]]; then
 elif [[ -n "$(dirname $(realpath ${0}))/config.cfg" ]]; then
 	echo "Using default config"
 	source "$(dirname $(realpath ${0}))/config.cfg"
-else
-	die "No config found"
 fi
 
