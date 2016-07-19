@@ -28,9 +28,9 @@ export PHOTO_MGMT_CONFIG=test.cfg
 
 ### VERIFY
 
-if ! ls "test-data/backup/2016" | grep -q "archive"; then
-	fail_test "photos didn't get backed up!"
-fi
+[[ -n "$(find "test-data/synced0" -type f)" ]] || fail_test "photos didn't get synced to target 0"
+[[ -n "$(find "test-data/synced1" -type f)" ]] || fail_test "photos didn't get synced to target 1"
+ls "test-data/backup/2016" | grep -q "archive" || fail_test "photos didn't get backed up!"
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"
