@@ -23,5 +23,6 @@ function syncTo {
 syncTo "${sync_target_0}" || echo "target 0 is not defined"
 syncTo "${sync_target_1}" || echo "target 1 is not defined"
 
-$(dirname ${0})/backup-photos.sh incr -y 2016 || $(dirname ${0})/backup-photos.sh full -y 2016
+year=$(date +%Y)
+$(dirname ${0})/backup-photos.sh incr -y ${year} || $(dirname ${0})/backup-photos.sh full -y ${year}
 
