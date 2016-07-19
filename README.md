@@ -98,6 +98,64 @@ This script uses `exiftool` to sort all media from source-dir into folders by ye
 
 Run `test/test-sort-photos.sh` to test sorting photos. View the contents of `test/test-data` to see what happened.
 
+## sync-photos.sh
+
+This script uses `rsync` to sync files to other machines. Kind of like a poor man's sync-thing. The following options are passed to rsync by default:
+
+	--partial --progress --delete --force -rutv
+
+### Usage
+
+	sync-photos.sh -s source-dir -t target
+
+### Options
+
+	-s | --source-dir
+	(Required) The directory containing photos to be synced.
+
+	-t | --target
+	(Required) The target to sync the photos to. Passed directly to rsync. May be a local directory or a `host:/path` SSH target etc.
+
+	-r | --reverse
+	(Optional) Sync from target to source-dir. Somewhat useful in wrapper scripts when something changes on the target. Generally, it is assumed that the source machine is the only place photos get uploaded to.
+
+Any unknown args are passed along to `rsync`. That is especially useful for the `-n` (`--dry-run`) argument.
+
 ## backup-photos.sh
 
-This is a stub script that doesn't do anything for now. Eventually it will facilitate rsync (over ssh) and s3 backups.
+Backs up encrypted photos using `duplicity`. Uses a `secrets.cfg` file to read the values for `PASSPHRASE`, AWS keys, and an Amazon S3 bucket name (see `secrets.example`). Passes prefixes for `archive`, `signature`, and `manifest` files so that Amazon S3 lifecycle rules can be applied to each file type (see `duplicity` man page).
+
+### Usage
+
+	backup-photos.sh command -s source-dir -t target -y 2016
+
+### Options
+
+	command
+	(Required) One of full, incremental, verify, restore, or list.
+
+	-s | --source-dir
+	(Required) The directory containing photos to be backed up.
+
+	-t | --target
+	(Required) The target to back up the photos to. "S3" will be converted to "s3+http://{S3_BUCKET}" and "/{year}" will be added to the end. Otherwise passed directly to duplicity.
+
+	-y | --year
+	(Required) The year (subdirectory of source-dir) to back up. Must be a value between 1900 and 2100.
+
+Any unknown args are passed directly to `duplicity`.
+
+## run.sh
+
+Runs the whole process in order based on values in a config file. First it will try to load a config file from the `PHOTO_MGMT_CONFIG` environment variable. Then it will look for a `config.cfg` file in the project root (regardless of the working directory).
+
+Scripts are run in this order:
+
+1. import-photos.sh
+2. pick-photos.sh
+3. sort-photos.sh
+4. sync-photos.sh
+5. backup-photos.sh
+
+Sync will be run for each `sync_target_*` value in the config file (where * is 0 or 1 for now). Backup will be done for the current year. `run.sh` will try an incremental backup first and a full backup if that fails (presumably because there are no existing files to increment).
+
