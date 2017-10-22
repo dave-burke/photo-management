@@ -26,10 +26,26 @@ safe_delete() {
 		echo "${1} is a device and cannot be deleted"
 	elif command -v trash >/dev/null; then
 		echo "Trashing ${1}"
-		trash "${1}"
+		if [[ -d "${1}" ]]; then
+			if [[ -z "$(ls ${1})" ]]; then
+				echo "No files to delete from directory ${1}"
+			else
+				trash "${1}"/*
+			fi
+		else
+			trash "${1}"
+		fi
 	elif command -v kioclient >/dev/null; then
 		echo "Trashing ${1}"
-		kioclient move "${1}" trash:/
+		if [[ -d "${1}" ]]; then
+			if [[ -z "$(ls ${1})" ]]; then
+				echo "No files to delete from directory ${1}"
+			else
+				kioclient move "${1}"/* trash:/
+			fi
+		else
+			kioclient move "${1}" trash:/
+		fi
 	else
 		echo "Okay to delete ${1}?"
 		read is_ok

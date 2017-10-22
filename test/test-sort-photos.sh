@@ -33,6 +33,8 @@ cp -arv samples/* "test-data/source"
 [[ -f "test-data/target/2016/02/6446470849_39efc3002a_z.jpg" ]] || fail_test "6446470849_39efc3002a_z.jpg was not sorted!"
 [[ -f "test-data/target/2016/02/t-rex.jpeg" ]] || fail_test "t-rex.jpeg was not sorted!"
 
+[[ -d "test-data/source" ]] || fail_test "source directory was deleted (in addition to directory contents)!"
+
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"
 	exit 1
