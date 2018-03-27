@@ -6,7 +6,7 @@ source "$(dirname $(realpath ${0}))/common.sh"
 
 verify_command rsync || die "rsync is required for syncing photos"
 
-args="--partial --progress --delete --force -rutv"
+args="--partial --progress --delete --force --exclude=.dtrash -rutv"
 #********************PARSE CLI********************
 while [ "$1" ]; do
 	case $1 in
