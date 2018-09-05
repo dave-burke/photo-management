@@ -18,19 +18,24 @@ rm -rfv test-data
 
 ### SETUP
 
-mkdir -pv "test-data/inbox"
-cp -arv samples/* "test-data/inbox"
+mkdir -pv "test-data/inbox/a"
+touch "test-data/inbox/a/.stfolder"
+mkdir -pv "test-data/inbox/b"
+cp -av samples/t-rex.jpeg "test-data/inbox/a"
+cp -av samples/saurischia_1.jpg "test-data/inbox/b"
 
 ### TEST
 
 export PHOTO_MGMT_CONFIG=test.cfg
 ../run.sh
+../run-backup.sh
 
 ### VERIFY
 
+[[ -f "test-data/inbox/a/.stfolder" ]] || fail_test ".stfolder file was not retained"
 [[ -n "$(find "test-data/synced0" -type f)" ]] || fail_test "photos didn't get synced to target 0"
 [[ -n "$(find "test-data/synced1" -type f)" ]] || fail_test "photos didn't get synced to target 1"
-ls "test-data/backup/2016" | grep -q "archive" || fail_test "photos didn't get backed up!"
+ls "test-data/backup/2018" | grep -q "archive" || fail_test "photos didn't get backed up!"
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"

@@ -15,9 +15,13 @@ function syncTo {
 	fi
 }
 
-# More can be added as needed here and in the cfg file.
-syncTo "${sync_target_0}" || echo "target 0 is not defined"
-syncTo "${sync_target_1}" || echo "target 1 is not defined"
+for i in 0 1 2 3 4; do
+	syncTargetVarName=sync_target_${i}
+	if [[ -n ${!syncTargetVarName} ]]; then
+		syncTarget=${!syncTargetVarName}
+		syncTo "${syncTarget}"
+	fi
+done
 
 year=$(date +%Y)
 $(dirname ${0})/backup-photos.sh incr -y ${year} || $(dirname ${0})/backup-photos.sh full -y ${year}
