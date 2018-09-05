@@ -54,7 +54,6 @@ for p in manifest archive signature; do
 done
 
 args+="\
-	--verbosity info \
 	--progress \
 	--name photos-${year} \
 	"
