@@ -35,6 +35,10 @@ touch "test-data/source/video.mpeg"
 # No extension
 touch "test-data/source/noextension"
 
+# Trash to ignore
+mkdir "test-data/source/.dtrash/"
+touch "test-data/source/.dtrash/junk.jpg"
+
 # Duplicate filenames
 touch "test-data/source/duplicate.jpg"
 touch "test-data/source/sub dir/duplicate.jpg"
@@ -54,6 +58,7 @@ touch "test-data/target/duplicate.jpg"
 [[ -f "test-data/target/duplicate.jpg" ]] || fail_test "'duplicate.jpg' was not imported!"
 [[ -f "test-data/target/duplicate-1.jpg" ]] || fail_test "'duplicate-1.jpg' was not imported!"
 [[ -f "test-data/target/duplicate-2.jpg" ]] || fail_test "'duplicate-2.jpg' was not imported!"
+[[ -f "test-data/target/junk.jpg" ]] && fail_test ".dtrash folder was imported"
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"
