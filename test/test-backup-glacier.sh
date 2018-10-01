@@ -62,6 +62,10 @@ curFiles="$(../backup-photos.sh list -t "${tgt}" -y ${year})"
 echo "${initFiles}" | grep -v "mar2" || fail_test "Init files contained updated file"
 echo "${curFiles}" | grep "mar2" || fail_test "Current files did not contain updated file"
 
+### TEST ANOTHER FULL
+
+../backup-photos.sh full -s "${src}" -t "${tgt}" -y ${year}
+
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"
 	exit 1
