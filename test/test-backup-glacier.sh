@@ -38,33 +38,28 @@ touch test-data/source/2015/04/may1.txt
 
 src="test-data/source"
 tgt="file://test-data/target"
-year=2016
 
 ### TEST INITIAL
 
-../backup-photos.sh full -s "${src}" -t "${tgt}" -y ${year}
-../backup-photos.sh verify -s "${src}" -t "${tgt}" -y ${year}
+../backup-photos.sh backup -s "${src}" -t "${tgt}"
+../backup-photos.sh verify -s "${src}" -t "${tgt}"
 
 ### TEST UPDATE
 
 initTime=$(date -Is)
-rm -v "test-data/target/2016/archive-"*
+rm -v test-data/target/*/*/archive-*
 sleep 2
 
 touch test-data/source/2016/03/mar2.txt
-../backup-photos.sh incr -s "${src}" -t "${tgt}" -y ${year}
+../backup-photos.sh backup -s "${src}" -t "${tgt}"
 
 ### VERIFY
 
-initFiles="$(../backup-photos.sh list --time "${initTime}" -t "${tgt}" -y ${year})"
-curFiles="$(../backup-photos.sh list -t "${tgt}" -y ${year})"
+initFiles="$(../backup-photos.sh list --time "${initTime}" -t "${tgt}/2016/03")"
+curFiles="$(../backup-photos.sh list -t "${tgt}/2016/03")"
 
 echo "${initFiles}" | grep -v "mar2" || fail_test "Init files contained updated file"
 echo "${curFiles}" | grep "mar2" || fail_test "Current files did not contain updated file"
-
-### TEST ANOTHER FULL
-
-../backup-photos.sh full -s "${src}" -t "${tgt}" -y ${year}
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"

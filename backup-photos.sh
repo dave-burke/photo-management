@@ -7,8 +7,7 @@ source "$(dirname $(realpath ${0}))/secrets.cfg"
 
 verify_command duplicity || die "duplicity is required for backing up encrypted photos"
 
-minYear=1900
-maxYear=2100
+[[ $# -gt 0 ]] || die "Usage: $(basename ${0}) [command] -s [source] -t [target]"
 
 command="${1}"
 shift
@@ -25,12 +24,7 @@ while [ "$1" ]; do
 			backup_target=$2
 			shift
 			;;
-		-y|--year)
-			year=$2
-			shift
-			;;
 		*)
-			args+=" $1 "
 			;;
 	esac
 	shift
@@ -39,48 +33,52 @@ done
 #********************VERIFY CLI********************
 [[ -d "${backup_source_dir}" ]] || die "[-s|--src-dir] is required"
 [[ -n "${backup_target}" ]] || die "[-t|--target] is required"
-[[ -n "${year}" ]] || die "[-y|--year] is required"
-[[ ${year} -ge ${minYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
-[[ ${year} -le ${maxYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
 
-if [[ "${backup_target}" == "s3" ]]; then
-	backup_target="s3+http://${S3_BUCKET}"
+if [[ "${backup_target:0:2}" == "s3" ]]; then
+	[[ -n "${S3_BUCKET}" ]] || die "Target is s3, but no S3_BUCKET specified."
+	backup_target="${backup_target/s3/s3+http:\/\/${S3_BUCKET}}"
 fi
-backup_source_dir+="/${year}"
-backup_target+="/${year}"
-
-for p in manifest archive signature; do
-	args+=" --file-prefix-$p ${p}- "
-done
-
-args+="\
-	--progress \
-	--name photos-${year} \
-	"
-	#--dry-run \
 
 export PASSPHRASE
 export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
 
-echo "command=${command}"
-echo "args=${args}"
-echo "at=${@}"
 echo "src=${backup_source_dir}"
 echo "tgt=${backup_target}"
 
+function dupli {
+	duplicity \
+		--file-prefix-manifest manifest- \
+		--file-prefix-archive archive- \
+		--file-prefix-signature signature- \
+		$@
+}
+
 case $command in
-	full|incr|increment|incremental)
-		duplicity ${command} ${args} ${@} "${backup_source_dir}" "${backup_target}"
+	backup)
+		for year in $(cd ${backup_source_dir} && ls -1rd *); do
+			for month in $(seq -w 12 -1 1); do
+				subdir="${year}/${month}"
+				if [[ -d "${backup_source_dir}/${subdir}" ]]; then
+					nFiles=$(ls -1 ${backup_source_dir}/${subdir} | wc -l)
+					# no 'command' means 'full or increment'
+					dupli \
+						--progress \
+						--name "photos-${year}-${month}" ${@} \
+						"${backup_source_dir}/${subdir}" "${backup_target}/${subdir}"
+				fi
+			done
+		done
 		;;
 	verify|restore)
-		duplicity ${command} ${args} ${@} "${backup_target}" "${backup_source_dir}"
+		for dir in $(find ${backup_source_dir}/ -maxdepth 2 -mindepth 2 -type d -printf "%P\n"); do
+			dupli ${command} ${@} "${backup_target}/${dir}" "${backup_source_dir}/${dir}"
+		done
 		;;
 	list|list-current-files)
-		duplicity list-current-files ${args} ${@} "${backup_target}"
+		dupli list-current-files ${@} "${backup_target}"
 		;;
 	*)
 		die "Unknown command: ${command}"
 		;;
 esac
-

@@ -33,7 +33,7 @@ touch test-data/source/2015/04/may1.txt
 
 ### TEST INITIAL
 
-../backup-photos.sh full -s "test-data/source" -t "file://test-data/target" -y 2016
+../backup-photos.sh backup -s "test-data/source" -t "file://test-data/target"
 
 ### TEST UPDATE
 
@@ -41,13 +41,13 @@ initTime=$(date -Is)
 sleep 2
 
 touch test-data/source/2016/03/mar2.txt
-../backup-photos.sh incr -s "test-data/source" -t "file://test-data/target" -y 2016
+../backup-photos.sh backup -s "test-data/source" -t "file://test-data/target"
 
 ### VERIFY
 
-../backup-photos.sh verify -s "test-data/source" -t "file://test-data/target" -y 2016 || fail_test "Verify returned non-zero"
-initFiles="$(../backup-photos.sh list --time "${initTime}" -t "file://test-data/target" -y 2016)"
-curFiles="$(../backup-photos.sh list -t "file://test-data/target" -y 2016)"
+../backup-photos.sh verify -s "test-data/source" -t "file://test-data/target" || fail_test "Verify returned non-zero"
+initFiles="$(../backup-photos.sh list --time "${initTime}" -t "file://test-data/target/2016/03")"
+curFiles="$(../backup-photos.sh list -t "file://test-data/target/2016/03")"
 
 echo "${initFiles}" | grep -v "mar2" || fail_test "Init files contained updated file"
 echo "${curFiles}" | grep "mar2" || fail_test "Current files did not contain updated file"
