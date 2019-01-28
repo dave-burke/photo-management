@@ -2,7 +2,8 @@
 
 set -e
 
-source "$(dirname $(realpath ${0}))/common.sh"
+APP_HOME="$(dirname $(realpath ${0}))"
+source "${APP_HOME}/common.sh"
 
 for i in 0 1 2 3 4; do
 	srcDirVarName=import_source_dir_${i}
@@ -11,11 +12,11 @@ for i in 0 1 2 3 4; do
 		if [[ -f "${srcDir}/.stfolder" ]]; then
 			isSynced="true"
 		fi
-		$(dirname ${0})/import-photos.sh --source-dir ${srcDir}
+		${APP_HOME}/import-photos.sh --source-dir ${srcDir}
 		if [[ "${isSynced}" == "true" ]]; then
 			touch "${srcDir}/.stfolder"
 		fi
 	fi
 done
-$(dirname ${0})/sort-photos.sh || echo "Not everything was sorted"
+${APP_HOME}/sort-photos.sh || echo "Not everything was sorted"
 
