@@ -62,6 +62,7 @@ case $command in
 				if [[ -d "${backup_source_dir}/${subdir}" ]]; then
 					nFiles=$(ls -1 ${backup_source_dir}/${subdir} | wc -l)
 					# no 'command' means 'full or increment'
+					echo "Backing up ${backup_source_dir}/${subdir} to ${backup_target}/${subdir} as photos-${year}-${month}"
 					dupli \
 						--progress \
 						--name "photos-${year}-${month}" ${@} \
