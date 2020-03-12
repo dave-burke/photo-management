@@ -47,33 +47,6 @@ Import photos downloaded from the web:
 
 Run `test/test-import-photos.sh` to test the import script. View the contents of `test/test-data` to see what happened.
 
-## pick-photos.sh
-
-Uses `feh` to allow the user to select photos to keep. Photos saved with `s` will be moved to the "favorites-dir," if specified. All photos that were not "delete" with `d` will be copied to target-dir.  After photos are reviewed with `feh`, the script plays each video file in `vlc` and prompts the user to keep or discard it. Kept videos are added to the list of files to move to target-dir.  After all selected favorites are copied to favorites-dir and all non-rejected photos are moved to target-dir, source-dir is trashed.
-
-### Usage
-
-	pick-photos.sh -s source-dir -t target-dir -f favorites-dir
-
-### Options
-
-	-s | --source-dir
-	(Required) The directory containing photos to be sorted.
-
-	-t | --target-dir
-	(Required) The directory to sort photos into.
-
-	-f | --favorites-dir
-	(Optional) Photos saved from `feh` using the `s` key are copied to this directory.
-
-### Example
-
-	pick-photos.sh -s /tmp/unsorted-photos -t /home/user/photos -f /home/user/.desktop-slideshow
-
-### Testing
-
-Run `test/test-pick-photos.sh` or `test/test-pick-photos-no-delete.sh` to test picking photos. This test is interactive.
-
 ## sort-photos.sh
 
 This script uses `exiftool` to sort all media from source-dir into folders by year and month in target-dir. Folder names are in the format "yyyy-mm". Uses CreateDate metadata, or FileModifyDate if CreateDate is unavailable.
