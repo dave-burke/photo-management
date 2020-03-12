@@ -28,14 +28,12 @@ cp -av samples/saurischia_1.jpg "test-data/inbox/b"
 
 export PHOTO_MGMT_CONFIG=test.cfg
 ../run.sh
-../run-backup.sh
+../backup-photos.sh full -y 2010
 
 ### VERIFY
 
 [[ -f "test-data/inbox/a/.stfolder" ]] || fail_test ".stfolder file was not retained"
-[[ -n "$(find "test-data/synced0" -type f)" ]] || fail_test "photos didn't get synced to target 0"
-[[ -n "$(find "test-data/synced1" -type f)" ]] || fail_test "photos didn't get synced to target 1"
-ls "test-data/backup/2018" | grep -q "archive" || fail_test "photos didn't get backed up!"
+ls "test-data/backup/2010" | grep -q "archive" || fail_test "photos didn't get backed up!"
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"
