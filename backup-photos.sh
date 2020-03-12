@@ -65,6 +65,7 @@ case $command in
 					echo "Backing up ${backup_source_dir}/${subdir} to ${backup_target}/${subdir} as photos-${year}-${month}"
 					dupli \
 						--progress \
+						--progress-rate 60 \
 						--name "photos-${year}-${month}" ${@} \
 						"${backup_source_dir}/${subdir}" "${backup_target}/${subdir}"
 				fi
