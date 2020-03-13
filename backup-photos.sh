@@ -84,3 +84,5 @@ case $command in
 		die "Unknown command: ${command}"
 		;;
 esac
+
+echo "Backup complete in $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
