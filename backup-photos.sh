@@ -46,13 +46,7 @@ export AWS_SECRET_ACCESS_KEY
 echo "src=${backup_source_dir}"
 echo "tgt=${backup_target}"
 
-function dupli {
-	duplicity \
-		--file-prefix-manifest manifest- \
-		--file-prefix-archive archive- \
-		--file-prefix-signature signature- \
-		$@
-}
+PREFIX_ARGS="--file-prefix-manifest manifest- --file-prefix-archive archive- --file-prefix-signature signature- "
 
 case $command in
 	backup)
@@ -64,7 +58,8 @@ case $command in
 					nFiles=$(ls -1 ${backup_source_dir}/${subdir} | wc -l)
 					# no 'command' means 'full or increment'
 					echo "Backing up ${backup_source_dir}/${subdir} to ${backup_target}/${subdir} as photos-${year}-${month}"
-					dupli \
+					duplicity \
+						${PREFIX_ARGS}
 						--progress \
 						--progress-rate 60 \
 						--name "photos-${year}-${month}" ${@} \
@@ -97,11 +92,11 @@ case $command in
 		;;
 	verify|restore)
 		for dir in $(find ${backup_source_dir}/ -maxdepth 2 -mindepth 2 -type d -printf "%P\n"); do
-			dupli ${command} ${@} "${backup_target}/${dir}" "${backup_source_dir}/${dir}"
+			duplicity ${PREFIX_ARGS} ${command} ${@} "${backup_target}/${dir}" "${backup_source_dir}/${dir}"
 		done
 		;;
 	list|list-current-files)
-		dupli list-current-files ${@} "${backup_target}"
+		duplicity ${PREFIX_ARGS} list-current-files ${@} "${backup_target}"
 		;;
 	*)
 		die "Unknown command: ${command}"
