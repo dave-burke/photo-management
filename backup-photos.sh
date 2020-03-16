@@ -56,6 +56,7 @@ function dupli {
 
 case $command in
 	backup)
+		echo '{ "Rules": [' > lifecycle.json
 		for year in $(cd ${backup_source_dir} && ls -1rd *); do
 			for month in $(seq -w 12 -1 1); do
 				subdir="${year}/${month}"
@@ -68,9 +69,31 @@ case $command in
 						--progress-rate 60 \
 						--name "photos-${year}-${month}" ${@} \
 						"${backup_source_dir}/${subdir}" "${backup_target}/${subdir}"
+					cat >> lifecycle.json <<-RULE
+			  		  {
+			    		"ID": "${year}-${month} Glacier Archive",
+			    		"Prefix": "${year}/${month}/archive",
+			    		"Status": "Enabled",
+			    		"Transitions": [
+			      		  {
+			        		"Days": 1,
+			        		"StorageClass": "GLACIER"
+			      		  }
+			    		]
+			  		  },
+					RULE
 				fi
 			done
 		done
+		echo ']}' >> lifecycle.json
+		# This is a hack to remove the last trailing comma from the rule array
+		tac lifecycle.json | sed '2 s/},/}/' | tac > tmp.json
+		mv tmp.json lifecycle.json
+		if [[ "${backup_target:0:2}" == "s3" ]]; then
+			echo "Updating S3 bucket lifecycle configuration."
+			aws s3api put-bucket-lifecycle-configuration --bucket ${S3_BUCKET} --lifecycle-configuration file://lifecycle.json 
+		fi
+		rm lifecycle.json
 		;;
 	verify|restore)
 		for dir in $(find ${backup_source_dir}/ -maxdepth 2 -mindepth 2 -type d -printf "%P\n"); do
