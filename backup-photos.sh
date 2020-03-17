@@ -5,6 +5,7 @@ set -e
 source "$(dirname $(realpath ${0}))/common.sh"
 source "$(dirname $(realpath ${0}))/secrets.cfg"
 
+
 verify_command duplicity || die "duplicity is required for backing up encrypted photos"
 
 [[ $# -gt 0 ]] || die "Usage: $(basename ${0}) [command] -s [source] -t [target]"
@@ -50,21 +51,25 @@ PREFIX_ARGS="--file-prefix-manifest manifest- --file-prefix-archive archive- --f
 
 case $command in
 	backup)
-		echo '{ "Rules": [' > lifecycle.json
+		make_temp_file jobs && jobs_file=${temp_file}
+		make_temp_file lifecycle && lifecycle_file=${temp_file}
+		trap "{ rm -f ${jobs_file} ${lifecycle_file} ; }" SIGHUP SIGINT SIGTERM EXIT
+
+		echo '{ "Rules": [' > ${lifecycle_file}
 		for year in $(cd ${backup_source_dir} && ls -1rd *); do
 			for month in $(seq -w 12 -1 1); do
 				subdir="${year}/${month}"
 				if [[ -d "${backup_source_dir}/${subdir}" ]]; then
-					nFiles=$(ls -1 ${backup_source_dir}/${subdir} | wc -l)
+					# Write commands to temp file for later parallel processing.
 					# no 'command' means 'full or increment'
-					echo "Backing up ${backup_source_dir}/${subdir} to ${backup_target}/${subdir} as photos-${year}-${month}"
-					duplicity \
-						${PREFIX_ARGS}
-						--progress \
-						--progress-rate 60 \
+					echo duplicity \
+						${PREFIX_ARGS} \
 						--name "photos-${year}-${month}" ${@} \
-						"${backup_source_dir}/${subdir}" "${backup_target}/${subdir}"
-					cat >> lifecycle.json <<-RULE
+						"${backup_source_dir}/${subdir}" "${backup_target}/${subdir}" >> ${jobs_file}
+
+					# Create AWS lifecycle rule to move archive files to glacier.
+					# This will only be used if the target is AWS.
+					cat >> "${lifecycle_file}" <<-RULE
 			  		  {
 			    		"ID": "${year}-${month} Glacier Archive",
 			    		"Prefix": "${year}/${month}/archive",
@@ -80,15 +85,17 @@ case $command in
 				fi
 			done
 		done
-		echo ']}' >> lifecycle.json
+		echo ']}' >> "${lifecycle_file}"
+
+		cat "${jobs_file}" | parallel --eta --keep-order
+
 		# This is a hack to remove the last trailing comma from the rule array
-		tac lifecycle.json | sed '2 s/},/}/' | tac > tmp.json
-		mv tmp.json lifecycle.json
+		tac "${lifecycle_file}" | sed '2 s/},/}/' | tac > tmp.json
+		mv tmp.json "${lifecycle_file}"
 		if [[ "${backup_target:0:2}" == "s3" ]]; then
 			echo "Updating S3 bucket lifecycle configuration."
-			aws s3api put-bucket-lifecycle-configuration --bucket ${S3_BUCKET} --lifecycle-configuration file://lifecycle.json 
+			aws s3api put-bucket-lifecycle-configuration --bucket ${S3_BUCKET} --lifecycle-configuration file://${lifecycle_file} 
 		fi
-		rm lifecycle.json
 		;;
 	verify|restore)
 		for dir in $(find ${backup_source_dir}/ -maxdepth 2 -mindepth 2 -type d -printf "%P\n"); do
