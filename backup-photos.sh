@@ -49,6 +49,16 @@ echo "tgt=${backup_target}"
 
 PREFIX_ARGS="--file-prefix-manifest manifest- --file-prefix-archive archive- --file-prefix-signature signature- "
 
+backup_month() {
+	local src="${1}"
+	local tgt="${2}"
+	local year="${3}"
+	local month="${4}"
+	echo "Begin ${year}-${month} at $(date -Iseconds)"
+	duplicity ${PREFIX_ARGS} --name "photos-${year}-${month}" "${src}/${year}/${month}" "${tgt}/${year}/${month}"
+	echo "End ${year}-${month} at $(date -Iseconds) ($(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec runtime)"
+}
+
 case $command in
 	backup)
 		make_temp_file jobs && jobs_file=${temp_file}
@@ -58,14 +68,10 @@ case $command in
 		echo '{ "Rules": [' > ${lifecycle_file}
 		for year in $(cd ${backup_source_dir} && ls -1rd *); do
 			for month in $(seq -w 12 -1 1); do
-				subdir="${year}/${month}"
-				if [[ -d "${backup_source_dir}/${subdir}" ]]; then
+				if [[ -d "${backup_source_dir}/${year}/${month}" ]]; then
 					# Write commands to temp file for later parallel processing.
 					# no 'command' means 'full or increment'
-					echo duplicity \
-						${PREFIX_ARGS} \
-						--name "photos-${year}-${month}" ${@} \
-						"${backup_source_dir}/${subdir}" "${backup_target}/${subdir}" >> ${jobs_file}
+					echo "backup_month ${backup_source_dir} ${backup_target} ${year} ${month}" >> ${jobs_file}
 
 					# Create AWS lifecycle rule to move archive files to glacier.
 					# This will only be used if the target is AWS.
@@ -87,6 +93,9 @@ case $command in
 		done
 		echo ']}' >> "${lifecycle_file}"
 
+		# Make sure these are available to `parallel` subprocesses
+		export PREFIX_ARGS
+		export -f backup_month
 		cat "${jobs_file}" | parallel --eta --keep-order
 
 		# This is a hack to remove the last trailing comma from the rule array
