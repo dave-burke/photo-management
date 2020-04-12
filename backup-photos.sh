@@ -5,10 +5,10 @@ set -e
 source "$(dirname $(realpath ${0}))/common.sh"
 source "$(dirname $(realpath ${0}))/secrets.cfg"
 
+
 verify_command duplicity || die "duplicity is required for backing up encrypted photos"
 
-minYear=1900
-maxYear=2100
+[[ $# -gt 0 ]] || die "Usage: $(basename ${0}) [command] -s [source] -t [target]"
 
 command="${1}"
 shift
@@ -25,12 +25,7 @@ while [ "$1" ]; do
 			backup_target=$2
 			shift
 			;;
-		-y|--year)
-			year=$2
-			shift
-			;;
 		*)
-			args+=" $1 "
 			;;
 	esac
 	shift
@@ -39,49 +34,89 @@ done
 #********************VERIFY CLI********************
 [[ -d "${backup_source_dir}" ]] || die "[-s|--src-dir] is required"
 [[ -n "${backup_target}" ]] || die "[-t|--target] is required"
-[[ -n "${year}" ]] || die "[-y|--year] is required"
-[[ ${year} -ge ${minYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
-[[ ${year} -le ${maxYear} ]] || die "[-y|--year] must be a sensible year between ${minYear} and ${maxYear}"
 
-if [[ "${backup_target}" == "s3" ]]; then
-	backup_target="s3+http://${S3_BUCKET}"
+if [[ "${backup_target:0:2}" == "s3" ]]; then
+	[[ -n "${S3_BUCKET}" ]] || die "Target is s3, but no S3_BUCKET specified."
+	backup_target="${backup_target/s3/s3+http:\/\/${S3_BUCKET}}"
 fi
-backup_source_dir+="/${year}"
-backup_target+="/${year}"
-
-for p in manifest archive signature; do
-	args+=" --file-prefix-$p ${p}- "
-done
-
-args+="\
-	--verbosity info \
-	--progress \
-	--name photos-${year} \
-	"
-	#--dry-run \
 
 export PASSPHRASE
 export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
 
-echo "command=${command}"
-echo "args=${args}"
-echo "at=${@}"
 echo "src=${backup_source_dir}"
 echo "tgt=${backup_target}"
 
+PREFIX_ARGS="--file-prefix-manifest manifest- --file-prefix-archive archive- --file-prefix-signature signature- "
+
+backup_month() {
+	local src="${1}"
+	local tgt="${2}"
+	local year="${3}"
+	local month="${4}"
+	echo "Begin ${year}-${month} at $(date -Iseconds)"
+	duplicity ${PREFIX_ARGS} --name "photos-${year}-${month}" "${src}/${year}/${month}" "${tgt}/${year}/${month}"
+	echo "End ${year}-${month} at $(date -Iseconds) ($(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec runtime)"
+}
+
 case $command in
-	full|incr|increment|incremental)
-		duplicity ${command} ${args} ${@} "${backup_source_dir}" "${backup_target}"
+	backup)
+		make_temp_file jobs && jobs_file=${temp_file}
+		make_temp_file lifecycle && lifecycle_file=${temp_file}
+		trap "{ rm -f ${jobs_file} ${lifecycle_file} ; }" SIGHUP SIGINT SIGTERM EXIT
+
+		echo '{ "Rules": [' > ${lifecycle_file}
+		for year in $(cd ${backup_source_dir} && ls -1rd *); do
+			for month in $(seq -w 12 -1 1); do
+				if [[ -d "${backup_source_dir}/${year}/${month}" ]]; then
+					# Write commands to temp file for later parallel processing.
+					# no 'command' means 'full or increment'
+					echo "backup_month ${backup_source_dir} ${backup_target} ${year} ${month}" >> ${jobs_file}
+
+					# Create AWS lifecycle rule to move archive files to glacier.
+					# This will only be used if the target is AWS.
+					cat >> "${lifecycle_file}" <<-RULE
+			  		  {
+			    		"ID": "${year}-${month} Glacier Archive",
+			    		"Prefix": "${year}/${month}/archive",
+			    		"Status": "Enabled",
+			    		"Transitions": [
+			      		  {
+			        		"Days": 1,
+			        		"StorageClass": "GLACIER"
+			      		  }
+			    		]
+			  		  },
+					RULE
+				fi
+			done
+		done
+		echo ']}' >> "${lifecycle_file}"
+
+		# Make sure these are available to `parallel` subprocesses
+		export PREFIX_ARGS
+		export -f backup_month
+		cat "${jobs_file}" | parallel --eta --keep-order
+
+		# This is a hack to remove the last trailing comma from the rule array
+		tac "${lifecycle_file}" | sed '2 s/},/}/' | tac > tmp.json
+		mv tmp.json "${lifecycle_file}"
+		if [[ "${backup_target:0:2}" == "s3" ]]; then
+			echo "Updating S3 bucket lifecycle configuration."
+			aws s3api put-bucket-lifecycle-configuration --bucket ${S3_BUCKET} --lifecycle-configuration file://${lifecycle_file} 
+		fi
 		;;
 	verify|restore)
-		duplicity ${command} ${args} ${@} "${backup_target}" "${backup_source_dir}"
+		for dir in $(find ${backup_source_dir}/ -maxdepth 2 -mindepth 2 -type d -printf "%P\n"); do
+			duplicity ${PREFIX_ARGS} ${command} ${@} "${backup_target}/${dir}" "${backup_source_dir}/${dir}"
+		done
 		;;
 	list|list-current-files)
-		duplicity list-current-files ${args} ${@} "${backup_target}"
+		duplicity ${PREFIX_ARGS} list-current-files ${@} "${backup_target}"
 		;;
 	*)
 		die "Unknown command: ${command}"
 		;;
 esac
 
+echo "Backup complete in $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"

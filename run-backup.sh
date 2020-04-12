@@ -24,6 +24,5 @@ for i in 0 1 2 3 4; do
 	fi
 done
 
-year=$(date +%Y)
-${APP_HOME}/backup-photos.sh incr -y ${year} || $(dirname ${0})/backup-photos.sh full -y ${year}
+${APP_HOME}/backup-photos.sh backup
 

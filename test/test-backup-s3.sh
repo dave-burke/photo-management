@@ -31,12 +31,12 @@ touch test-data/source/1900/04/may1.txt
 
 ### TEST INITIAL
 
-../backup-photos.sh full -s "test-data/source" -t "s3" -y 1901
+../backup-photos.sh backup -s "test-data/source" -t "s3"
 
 ### VERIFY
 
-../backup-photos.sh verify -s "test-data/source" -t "s3" -y 1901 || fail_test "Verify returned non-zero"
-../backup-photos.sh list -t "s3" -y 1901 || fail_test "List returned non-zero"
+../backup-photos.sh verify -s "test-data/source" -t "s3" || fail_test "Verify returned non-zero"
+../backup-photos.sh list -t "s3/1901/01" || fail_test "List returned non-zero"
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"

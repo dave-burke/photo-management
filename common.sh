@@ -71,6 +71,25 @@ pause() {
 	read
 }
 
+make_temp_file() {
+	temp_dir="/tmp"
+	if [ -d "${TEMP}" ]; then
+		temp_dir="${TEMP}"
+	fi
+	prefix=$1
+	if [[ -z "${prefix}" ]]; then
+		prefix="$(basename ${0})"
+		prefix="${prefix%.*}" # Remove extension
+	fi
+
+	temp_file="${temp_dir}/${prefix}.$$.$RANDOM"
+}
+
+function cleanup {
+	rm --verbose "${temp_file}"
+	exit
+}
+
 if [[ -n ${PHOTO_MGMT_CONFIG} ]]; then
 	echo "Loading ${PHOTO_MGMT_CONFIG}"
 	source "${PHOTO_MGMT_CONFIG}"
