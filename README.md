@@ -145,6 +145,13 @@ Backs up encrypted photos using `duplicity`. Uses a `secrets.cfg` file to read t
 
 Any unknown args are passed directly to `duplicity`.
 
+### Testing restore (should be done annually)
+
+1. Use `echo "$(shuf -i 2006-$(date +%Y) -n 1)/$(shuf -i 01-12 -n 1)"` to choose a random year/month
+1. Restore all `archive-*` files in that year/month. Use the console, or consider [aws-s3-glacier-restore](https://github.com/marko-bast/aws-s3-glacier-restore/blob/master/aws-s3-glacier-restore)
+1. Run `backup-photos.sh [verify|restore] -t "s3/[year]/[month]" "~/photos/[year]/[month]` e.g. `backup-photos.sh restore -t "s3/2011/06" "~/tmp/photos/restore"`
+1. If you want to be sure to be sure, follow up with `rsync -rutcvn ~/photos/[year]/[month]/ ~/tmp/photos/restore` (note that `-c` uses checksums instead of modified date/size.
+
 ## run.sh
 
 Runs the whole process in order based on values in a config file. First it will try to load a config file from the `PHOTO_MGMT_CONFIG` environment variable. Then it will look for a `config.cfg` file in the project root (regardless of the working directory).
