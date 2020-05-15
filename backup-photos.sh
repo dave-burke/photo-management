@@ -106,10 +106,13 @@ case $command in
 			aws s3api put-bucket-lifecycle-configuration --bucket ${S3_BUCKET} --lifecycle-configuration file://${lifecycle_file} 
 		fi
 		;;
-	verify|restore)
+	verify-all|restore-all)
 		for dir in $(find ${backup_source_dir}/ -maxdepth 2 -mindepth 2 -type d -printf "%P\n"); do
 			duplicity ${PREFIX_ARGS} ${command} ${@} "${backup_target}/${dir}" "${backup_source_dir}/${dir}"
 		done
+		;;
+	verify|restore)
+		duplicity ${PREFIX_ARGS} ${command} ${@} "${backup_target}" "${backup_source_dir}"
 		;;
 	list|list-current-files)
 		duplicity ${PREFIX_ARGS} list-current-files ${@} "${backup_target}"
