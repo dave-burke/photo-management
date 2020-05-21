@@ -38,6 +38,9 @@ touch "test-data/source/noextension"
 # Trash to ignore
 mkdir "test-data/source/.dtrash/"
 touch "test-data/source/.dtrash/junk.jpg"
+mkdir "test-data/source/.stversions/"
+touch "test-data/source/.stversions/old.jpg"
+touch "test-data/source/.stfoler"
 
 # Duplicate filenames
 touch "test-data/source/duplicate.jpg"
@@ -59,6 +62,8 @@ touch "test-data/target/duplicate.jpg"
 [[ -f "test-data/target/duplicate-1.jpg" ]] || fail_test "'duplicate-1.jpg' was not imported!"
 [[ -f "test-data/target/duplicate-2.jpg" ]] || fail_test "'duplicate-2.jpg' was not imported!"
 [[ -f "test-data/target/junk.jpg" ]] && fail_test ".dtrash folder was imported"
+[[ -f "test-data/target/old.jpg" ]] && fail_test ".stversions folder was imported"
+[[ -f "test-data/target/.stfolder" ]] && fail_test ".stfolder was imported"
 
 if [[ "${FAILED}" == true ]]; then
 	echo "FAILED ${0}!"

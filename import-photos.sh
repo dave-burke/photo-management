@@ -89,7 +89,11 @@ safe_flatten() {
 	local target_dir="${2}"
 	[[ -d ${source_dir} ]] || die "${source_dir} is not a directory"
 	[[ -d ${target_dir} ]] || die "${target_dir} is not a directory"
-	find "${source_dir}" -name .dtrash -prune -o -type f -print0 | while IFS= read -r -d $'\0' f; do
+	find "${source_dir}" \
+			-name .dtrash -prune -o \
+			-name .stversions -prune -o \
+			-name .stfolder -prune -o \
+			-type f -print0 | while IFS= read -r -d $'\0' f; do
 		safe_copy "${f}" "${target_dir}"
 	done
 }
