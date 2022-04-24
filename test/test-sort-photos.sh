@@ -20,6 +20,9 @@ rm -rfv test-data
 
 mkdir -pv "test-data/source" "test-data/target"
 cp -arv samples/* "test-data/source"
+# These will be sorted by modified date, so that needs to match the test expectation
+touch -d "2016-02-01" "test-data/source/6446470849_39efc3002a_z.jpg"
+touch -d "2016-02-01" "test-data/source/t-rex.jpeg"
 
 ### TEST
 
