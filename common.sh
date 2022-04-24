@@ -50,7 +50,7 @@ safe_delete() {
 		echo "Okay to delete ${1}?"
 		read is_ok
 		if [ ${is_ok} == "yes" ]; then
-			rm -rfv "${1}"
+			rm -rfv "${1}"/*
 		else
 			echo "Did not delete ${1}"
 		fi
