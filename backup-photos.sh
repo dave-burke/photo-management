@@ -50,6 +50,8 @@ echo "tgt=${backup_target}"
 PREFIX_ARGS="--file-prefix-manifest manifest- --file-prefix-archive archive- --file-prefix-signature signature- "
 
 backup_month() {
+	set -e
+
 	local src="${1}"
 	local tgt="${2}"
 	local year="${3}"
@@ -96,7 +98,7 @@ case $command in
 		# Make sure these are available to `parallel` subprocesses
 		export PREFIX_ARGS
 		export -f backup_month
-		cat "${jobs_file}" | parallel --eta --keep-order
+		cat "${jobs_file}" | parallel --halt 'soon,fail=1' --eta || echo "BACKUP FAILED!" && exit 1
 
 		# This is a hack to remove the last trailing comma from the rule array
 		tac "${lifecycle_file}" | sed '2 s/},/}/' | tac > tmp.json
