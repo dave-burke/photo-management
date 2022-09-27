@@ -37,7 +37,7 @@ done
 
 if [[ "${backup_target:0:2}" == "s3" ]]; then
 	[[ -n "${S3_BUCKET}" ]] || die "Target is s3, but no S3_BUCKET specified."
-	backup_target="${backup_target/s3/s3+http:\/\/${S3_BUCKET}}"
+	backup_target="${backup_target/s3/s3:\/\/\/${S3_BUCKET}}"
 fi
 
 export PASSPHRASE
